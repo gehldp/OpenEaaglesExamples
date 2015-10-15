@@ -202,7 +202,7 @@ bool ZeroMQHandler::initNetwork(const bool noWaitFlag)
    // initialize the network
    if ((context == nullptr) || (socketType == -1) || endpoint.empty()) return false;
 
-   bool ok = false;
+   bool ok = true;
 
    // Initialize the context so we can use it
    if (!context->isInitialized()) ok = context->initContext();
