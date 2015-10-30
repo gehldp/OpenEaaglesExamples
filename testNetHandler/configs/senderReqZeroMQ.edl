@@ -4,12 +4,27 @@
 
 ( Sender
     noWait: false
-    netHandler:   ( ZeroMQHandler
-                     connect:           "tcp://localhost:12345"
-                     socketType:        REQ
-                     sendHighWaterMark: 5
-                     recvHighWaterMark: 5
-                     linger:            500
+
+    //netHandler:   ( ZeroMQHandler
+    //                 connect:           "tcp://localhost:12345"
+    //                 socketType:        REQ
+    //                 sendHighWaterMark: 5
+    //                 recvHighWaterMark: 5
+    //                 linger:            500
+    //              )
+
+    //netHandler:   ( ZeroMQHandler
+    //                 connect:           "tcp://localhost:12345"
+    //                 socketType:        PAIR
+    //              )
+
+    netInput:   ( ZeroMQHandler
+                     accept:            "tcp://*:12346"
+                     socketType:        PAIR
+                  )
+    netOutput:   ( ZeroMQHandler
+                     accept:           "tcp://*:12345"
+                     socketType:        PUB
                   )
 )
 

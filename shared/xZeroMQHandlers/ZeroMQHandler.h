@@ -10,15 +10,10 @@
 #include <string>
 
 namespace Eaagles {
-   namespace Basic { class Boolean; class Integer; class String; };
+   namespace Basic { class Boolean; class Integer; class List; class PairStream; class String; };
 
 namespace xZeroMQHandlers {
    class ZeroMQContext;
-
-   // Mapping types used to convert the enums and 0MQ constants to strings
-   // and back again!
-   typedef std::map <std::string, int> s2i_t;
-   typedef std::map <int, std::string> i2s_t;
 
 //------------------------------------------------------------------------------
 // Class: ZeroMQHandler
@@ -51,19 +46,39 @@ class ZeroMQHandler : public Basic::NetHandler
 public:
    ZeroMQHandler();
 
-   bool initNetwork(const bool noWaitFlag) override;
-   bool isConnected() const override;
-   bool closeConnection() override;
-   bool sendData(const char* const packet, const int size) override;
-   unsigned int recvData(char* const packet, const int maxSize) override;
+   // Subscribe to a message (SUB type only)
+   virtual bool setSubscribe(const Basic::String& msg);
+
+   // Unsubscribe a message (SUB type only)
+   virtual bool setUnsubscribe(const Basic::String& msg);
 
    // Casting for the dereference operator much like Basic::String.  This is
    // useful when using a 0MQ function directly like zmq_poll.
    operator void* ()               { return socket; }
    operator const void* () const   { return socket; }
 
+   // NetHandler functions
+   bool initNetwork(const bool noWaitFlag) override;
+   bool isConnected() const override;
+   bool closeConnection() override;
+   bool sendData(const char* const packet, const int size) override;
+   unsigned int recvData(char* const packet, const int maxSize) override;
    bool setBlocked() override;
    bool setNoWait() override;
+
+protected:
+   virtual bool setContext(ZeroMQContext* const context);
+   virtual bool setSocketType(const char* const type);
+   virtual bool setConnect(const char* const type);
+   virtual bool setAccept(const char* const type);
+   virtual bool setNoWait(const bool noWait);
+   virtual bool setLinger(const int period);
+   virtual bool setBackLog(const int count);
+   virtual bool setIdentity(const char* const ident);
+   virtual bool setSendBufSize(const int count);
+   virtual bool setRecvBufSize(const int count);
+   virtual bool setSendHWM(const int mark);
+   virtual bool setRecvHWM(const int mark);
 
    // Slots
    virtual bool setSlotContext(ZeroMQContext* const msg);
@@ -73,27 +88,13 @@ public:
    virtual bool setSlotNoWait(const Basic::Boolean* const msg);
    virtual bool setSlotLinger(const Basic::Integer* const msg);
    virtual bool setSlotSubscribe(const Basic::String* const msg);
+   virtual bool setSlotSubscribe(const Basic::PairStream* const msg);
    virtual bool setSlotBackLog(const Basic::Integer* const msg);
    virtual bool setSlotIdentity(const Basic::String* const msg);
    virtual bool setSlotSendBufSize(const Basic::Integer* const msg);
    virtual bool setSlotRecvBufSize(const Basic::Integer* const msg);
    virtual bool setSlotSendHWM(const Basic::Integer* const msg);
    virtual bool setSlotRecvHWM(const Basic::Integer* const msg);
-
-protected:
-   bool setContext(ZeroMQContext* const context);
-   bool setSocketType(const char* const type);
-   bool setConnect(const char* const type);
-   bool setAccept(const char* const type);
-   bool setNoWait(const bool noWait);
-   bool setLinger(const int period);
-   bool setSubscribe(const char* const filter);
-   bool setBackLog(const int count);
-   bool setIdentity(const char* const ident);
-   bool setSendBufSize(const int count);
-   bool setRecvBufSize(const int count);
-   bool setSendHWM(const int mark);
-   bool setRecvHWM(const int mark);
 
 private:
    void initData();
@@ -104,6 +105,11 @@ private:
    // slot.
    static ZeroMQContext* masterContext;
 
+   // Mapping types used to convert the enums and 0MQ constants to strings
+   // and back again!
+   typedef std::map <std::string, int> s2i_t;
+   typedef std::map <int, std::string> i2s_t;
+
    static s2i_t sts2i;           // ZeroMQHandler type maps
    static i2s_t sti2s;
 
@@ -112,7 +118,7 @@ protected:
    int            socketType;    // Socket type
    std::string    endpoint;      // Endpoint for binding
    int            linger;        // Socket linger period (ms)
-   std::string    subscribe;     // Message filter
+   Basic::safe_ptr<const Basic::List> subscriptions;     // SUB type Message filters
    int            backLog;       // Connection queue size
    std::string    identity;      // Socket identity
    int            sendBufSize;   // Kernel buffer size for sending

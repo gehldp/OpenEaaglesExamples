@@ -4,11 +4,29 @@
 
 ( Echo
     noWait: false
-    netHandler:   ( ZeroMQHandler
-                     accept:            "tcp://*:12345"
-                     socketType:        REP
-                     sendHighWaterMark: 5
-                     linger:            500
+
+    //netHandler:   ( ZeroMQHandler
+    //                 accept:            "tcp://*:12345"
+    //                 socketType:        REP
+    //                 sendHighWaterMark: 5
+    //                 linger:            500
+    //              )
+
+    //netHandler:   ( ZeroMQHandler
+    //                 accept:            "tcp://*:12345"
+    //                 socketType:        PAIR
+    //              )
+
+    netInput:   ( ZeroMQHandler
+                     connect:            "tcp://localhost:12345"
+                     socketType:        SUB
+                     //subscribe: { "Mx" "Me" }   // subscribe to a list of messages
+                     //subscribe: "Me"            // subscribe to single message
+                     subscribe: ""                // subscribe to everything
+                  )
+    netOutput:   ( ZeroMQHandler
+                     connect:           "tcp://localhost:12346"
+                     socketType:        PAIR
                   )
 )
 

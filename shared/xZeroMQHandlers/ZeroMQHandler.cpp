@@ -5,6 +5,9 @@
 #include "ZeroMQContext.h"
 #include "openeaagles/basic/Boolean.h"
 #include "openeaagles/basic/Integer.h"
+#include "openeaagles/basic/List.h"
+#include "openeaagles/basic/Pair.h"
+#include "openeaagles/basic/PairStream.h"
 #include "openeaagles/basic/String.h"
 
 #include <sstream>
@@ -45,6 +48,7 @@ BEGIN_SLOT_MAP(ZeroMQHandler)
    ON_SLOT( 5, setSlotNoWait,      Basic::Boolean)
    ON_SLOT( 6, setSlotLinger,      Basic::Integer)
    ON_SLOT( 7, setSlotSubscribe,   Basic::String)
+   ON_SLOT( 7, setSlotSubscribe,   Basic::PairStream)
    ON_SLOT( 8, setSlotBackLog,     Basic::Integer)
    ON_SLOT( 9, setSlotIdentity,    Basic::String)
    ON_SLOT(10, setSlotSendBufSize, Basic::Integer)
@@ -58,8 +62,8 @@ END_SLOT_MAP()
 //------------------------------------------------------------------------------
 ZeroMQContext* ZeroMQHandler::masterContext = nullptr;
 
-s2i_t ZeroMQHandler::sts2i;
-i2s_t ZeroMQHandler::sti2s;
+ZeroMQHandler::s2i_t ZeroMQHandler::sts2i;
+ZeroMQHandler::i2s_t ZeroMQHandler::sti2s;
 
 ZeroMQHandler::ZeroMQHandler()
 {
@@ -108,7 +112,7 @@ void ZeroMQHandler::initData()
    endpoint    = "";
    socket      = nullptr;
    linger      = -1;
-   subscribe   = "";
+   subscriptions = nullptr;
    backLog     = -1;
    identity    = "";
    sendBufSize = -1;
@@ -142,7 +146,16 @@ void ZeroMQHandler::copyData(const ZeroMQHandler& org, const bool cc)
    socket      = nullptr;
    endpoint    = org.endpoint;
    linger      = org.linger;
-   subscribe   = org.subscribe;
+
+   {
+      subscriptions = nullptr;
+      if (org.subscriptions != nullptr) {
+         Basic::List* p = org.subscriptions->clone();
+         subscriptions = p;
+         p->unref();
+      }
+   }
+
    backLog     = org.backLog;
    identity    = org.identity;
    sendBufSize = org.sendBufSize;
@@ -216,13 +229,20 @@ bool ZeroMQHandler::initNetwork(const bool noWaitFlag)
 
    // Set the socket options
    if (ok && (linger != -1))       ok = (zmq_setsockopt(socket, ZMQ_LINGER,    &linger,           sizeof(linger))      == 0);
-   if (ok && !subscribe.empty())   ok = (zmq_setsockopt(socket, ZMQ_SUBSCRIBE, subscribe.c_str(), subscribe.length())  == 0);
    if (ok && (backLog != -1))      ok = (zmq_setsockopt(socket, ZMQ_BACKLOG,   &backLog,          sizeof(backLog))     == 0);
    if (ok && !identity.empty())    ok = (zmq_setsockopt(socket, ZMQ_IDENTITY,  identity.c_str(),  identity.length())   == 0);
    if (ok && (sendBufSize != -1))  ok = (zmq_setsockopt(socket, ZMQ_SNDBUF,    &sendBufSize,      sizeof(sendBufSize)) == 0);
    if (ok && (recvBufSize != -1))  ok = (zmq_setsockopt(socket, ZMQ_RCVBUF,    &recvBufSize,      sizeof(recvBufSize)) == 0);
    if (ok && (sendHWM != -1))      ok = (zmq_setsockopt(socket, ZMQ_SNDHWM,    &sendHWM,          sizeof(sendHWM))     == 0);
    if (ok && (recvHWM != -1))      ok = (zmq_setsockopt(socket, ZMQ_RCVHWM,    &recvHWM,          sizeof(recvHWM))     == 0);
+   if (ok && socketType == ZMQ_SUB && subscriptions != nullptr) {
+      const Basic::List::Item* item = subscriptions->getFirstItem();
+      while (item != nullptr && ok) {
+         const Basic::String* subscribe = reinterpret_cast<const Basic::String*>(item->getValue());
+         ok = setSubscribe(*subscribe);
+         item = item->getNext();
+      }
+   }
 
    // Allow bind or connection to the socket
    if (doBind) {
@@ -311,6 +331,29 @@ unsigned int ZeroMQHandler::recvData(char* const packet, const int maxSize)
 //------------------------------------------------------------------------------
 // Set functions
 //------------------------------------------------------------------------------
+
+// Subscribe to a message (SUB type only)
+bool ZeroMQHandler::setSubscribe(const Basic::String& msg)
+{
+   bool ok = false;
+   if (socket != nullptr) {
+      // Subscribe to this message; or zero length will subscribe to all messages
+      ok = (zmq_setsockopt(socket, ZMQ_SUBSCRIBE, msg.getString(), msg.len()) == 0);
+   }
+   return ok;
+}
+
+// Unsubscribe a message (SUB type only)
+bool ZeroMQHandler::setUnsubscribe(const Basic::String& msg)
+{
+   bool ok = false;
+   if (socket != nullptr) {
+      // Unsubscribe to this message;
+      ok = (zmq_setsockopt(socket, ZMQ_UNSUBSCRIBE, msg.getString(), msg.len()) == 0);
+   }
+   return ok;
+}
+
 bool ZeroMQHandler::setContext(ZeroMQContext* const ctx)
 {
    context = ctx;
@@ -350,12 +393,6 @@ bool ZeroMQHandler::setNoWait(const bool nowt)
 bool ZeroMQHandler::setLinger(const int period)
 {
    linger = period;
-   return true;
-}
-
-bool ZeroMQHandler::setSubscribe(const char* const filter)
-{
-   subscribe = filter;
    return true;
 }
 
@@ -459,13 +496,44 @@ bool ZeroMQHandler::setSlotLinger(const Basic::Integer* const msg)
    return ok;
 }
 
-// subscribe: String containing the message filter
+// subscribe: Single SUB message filter
 bool ZeroMQHandler::setSlotSubscribe(const Basic::String* const msg)
 {
-   // Save the subscribe filter for use in the initialization of the
-   // socket.
    bool ok = false;
-   if (msg != nullptr) ok = setSubscribe(*msg);
+   if (msg != nullptr) {
+      // Single item in the subscriptions list
+      Basic::List* newList = new Basic::List();
+      newList->put( const_cast<Basic::String*>(msg) );
+      subscriptions = newList;
+      newList->unref();
+      ok = true;
+   }
+   return ok;
+}
+
+// subscribe: List of SUB message filters
+bool ZeroMQHandler::setSlotSubscribe(const Basic::PairStream* const list)
+{
+   bool ok = false;
+   if (list != nullptr) {
+
+      // Multi item subscriptions list
+      Basic::List* newList = new Basic::List();
+
+      const Basic::List::Item* item = list->getFirstItem();
+      while (item != nullptr) {
+         const Basic::Pair* pair = reinterpret_cast<const Basic::Pair*>(item->getValue());
+         const Basic::String* msg = dynamic_cast<const Basic::String*>(pair->object());
+         if (msg != nullptr) {
+            newList->put(const_cast<Basic::String*>(msg));
+         }
+         item = item->getNext();
+      }
+
+      subscriptions = newList;
+      newList->unref();
+      ok = true;
+   }
    return ok;
 }
 
@@ -582,11 +650,20 @@ std::ostream& ZeroMQHandler::serialize(std::ostream& sout, const int i, const bo
       sout << "linger: " << linger << std::endl;
    }
 
-   // Output the message filter
-   if (!subscribe.empty()) {
-      indent(sout, i+j);
-      sout << "subscribe: " << subscribe << std::endl;
-   }
+   //// Output the message filter
+   //if ((subscriptions != nullptr) && (subscriptions->entries > 0)) {
+   //   indent(sout, i + j);
+   //   sout << "subscribe: " << "{" << std::endl;
+
+   //   const Basic::List::Item* item = subscriptions->getFirstItem();
+   //   while (item != nullptr) {
+   //      const Basic::String* msg = dynamic_cast<const Basic::String*>(item->getValue());
+   //      item = item->getNext();
+   //   }
+
+   //   indent(sout, i + j);
+   //   sout << "}" << std::endl;
+   //}
 
    // Output the back log count
    if (backLog != -1) {
