@@ -149,7 +149,6 @@ project "testNetHandler"
    libdirs     { OELibPath, OE3rdPartyLibPath }
    -- zeromq nethandlers
    defines { "ZMQ_STATIC" }
-   links { "libxZeroMQHandlers" }
    defines { "_CONSOLE" }
    configuration "Release"
       links {"oeBasic", "libzmq" }

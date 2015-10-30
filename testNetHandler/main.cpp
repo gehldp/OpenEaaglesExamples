@@ -11,7 +11,6 @@
 
 // class factories
 #include "openeaagles/basic/Factory.h"
-#include "../shared/xZeroMQHandlers/Factory.h"
 
 #include <cstring>
 #include <cstdlib>
@@ -33,8 +32,6 @@ static Basic::Object* factory(const char* name)
       obj = new Echo();
    }
 
-   // example libraries
-   if (obj == nullptr) obj = xZeroMQHandlers::Factory::createObj(name);
    // framework libraries
    if (obj == nullptr) obj = Basic::Factory::createObj(name);
 
