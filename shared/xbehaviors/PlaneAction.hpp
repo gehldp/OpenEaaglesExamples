@@ -2,20 +2,18 @@
 #ifndef __oe_xbehaviors_PlaneAction_H__
 #define __oe_xbehaviors_PlaneAction_H__
 
-#include "openeaagles/base/ubf/Action.hpp"
+#include "openeaagles/base/ubf/AbstractAction.hpp"
 
 namespace oe {
-
 namespace simulation { class Player; }
-
 namespace xbehaviors {
 
 //------------------------------------------------------------------------------
 // Class: PlaneAction
 //------------------------------------------------------------------------------
-class PlaneAction : public base::ubf::Action
+class PlaneAction : public base::ubf::AbstractAction
 {
-   DECLARE_SUBCLASS(PlaneAction, base::ubf::Action)
+   DECLARE_SUBCLASS(PlaneAction, base::ubf::AbstractAction)
 
 public:
    PlaneAction();
@@ -48,7 +46,7 @@ public:
    bool isSpeedChanged() const         { return speedChanged;       }
 
    void setFireMissile(const bool);
-   bool getFireMissile() const          { return fireMissile;       }
+   bool getFireMissile() const         { return fireMissile;        }
    bool isFireMissileChanged() const   { return fireMissileChanged; }
 
    void setPitchTrim(const double);
@@ -57,30 +55,29 @@ public:
 
 private:
 
-   double pitch;
-   bool pitchChanged;
+   double pitch {};
+   bool pitchChanged {};
 
-   double roll;
-   bool rollChanged;
+   double roll {};
+   bool rollChanged {};
 
-   double heading;
-   bool headingChanged;
+   double heading {};
+   bool headingChanged {};
 
-   double yaw;
-   bool yawChanged;
+   double yaw {};
+   bool yawChanged {};
 
-   double throttle;
-   bool throttleChanged;
+   double throttle {};
+   bool throttleChanged {};
 
-   double speed;
-   bool speedChanged;
+   double speed {};
+   bool speedChanged {};
 
-   double pitchTrim;
-   bool pitchTrimChanged;
+   double pitchTrim {};
+   bool pitchTrimChanged {};
 
-   bool fireMissile;
-   bool fireMissileChanged;
-
+   bool fireMissile {};
+   bool fireMissileChanged {};
 };
 
 }

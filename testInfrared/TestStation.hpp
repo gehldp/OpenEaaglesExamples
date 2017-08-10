@@ -5,7 +5,7 @@
 #include "openeaagles/simulation/Station.hpp"
 
 namespace oe {
-   namespace glut  { class GlutDisplay; }
+namespace glut  { class GlutDisplay; }
 }
 
 //------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ private:
    bool setSlotGlutDisplay(oe::glut::GlutDisplay* const msg);
 
    oe::base::safe_ptr<oe::glut::GlutDisplay> glutDisplay;
-   bool glutDisplayInit;
+   bool glutDisplayInit {};
 };
 
 #endif

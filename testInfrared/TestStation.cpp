@@ -5,19 +5,18 @@
 #include "openeaagles/base/PairStream.hpp"
 #include "openeaagles/base/Timers.hpp"
 
-#include "openeaagles/simulation/AirVehicle.hpp"
+#include "openeaagles/models/player/AirVehicle.hpp"
+
 #include "openeaagles/simulation/Simulation.hpp"
 
 #include "openeaagles/gui/glut/GlutDisplay.hpp"
 
 IMPLEMENT_SUBCLASS(TestStation, "TestStation")
 
-// slot table for this class type
 BEGIN_SLOTTABLE(TestStation)
     "glutDisplay",
 END_SLOTTABLE(TestStation)
 
-//  Map slot table to handles
 BEGIN_SLOT_MAP(TestStation)
     ON_SLOT(1, setSlotGlutDisplay, oe::glut::GlutDisplay)
 END_SLOT_MAP()
@@ -25,18 +24,11 @@ END_SLOT_MAP()
 TestStation::TestStation()
 {
    STANDARD_CONSTRUCTOR()
-
-   glutDisplay = nullptr;
-   glutDisplayInit = false;
 }
 
-void TestStation::copyData(const TestStation& org, const bool cc)
+void TestStation::copyData(const TestStation& org, const bool)
 {
    BaseClass::copyData(org);
-
-   if (cc) {
-      glutDisplay = nullptr;
-   }
 
    setSlotGlutDisplay(nullptr);
    glutDisplayInit = false;
@@ -100,17 +92,17 @@ void TestStation::stepOwnshipPlayer()
    oe::base::PairStream* pl = getSimulation()->getPlayers();
    if (pl != nullptr) {
 
-      oe::simulation::Player* f = nullptr;
-      oe::simulation::Player* n = nullptr;
+      oe::models::Player* f = nullptr;
+      oe::models::Player* n = nullptr;
       bool found = false;
 
       // Find the next player
       oe::base::List::Item* item = pl->getFirstItem();
       while (item != nullptr) {
-         oe::base::Pair* pair = static_cast<oe::base::Pair*>(item->getValue());
+         const auto pair = static_cast<oe::base::Pair*>(item->getValue());
          if (pair != nullptr) {
-            oe::simulation::Player* ip = static_cast<oe::simulation::Player*>( pair->object() );
-            if ( ip->isMode(oe::simulation::Player::ACTIVE) &&
+            const auto ip = static_cast<oe::models::Player*>( pair->object() );
+            if ( ip->isMode(oe::models::Player::ACTIVE) &&
                ip->isLocalPlayer()
                ) {
                   if (f == nullptr) { f = ip; }  // Remember the first
@@ -132,11 +124,6 @@ bool TestStation::setSlotGlutDisplay(oe::glut::GlutDisplay* const d)
     glutDisplay = d;
     glutDisplay->container(this);
     return true;
-}
-
-oe::base::Object* TestStation::getSlotByIndex(const int si)
-{
-   return BaseClass::getSlotByIndex(si);
 }
 
 std::ostream& TestStation::serialize(std::ostream& sout, const int i, const bool slotsOnly) const

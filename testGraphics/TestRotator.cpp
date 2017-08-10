@@ -1,6 +1,6 @@
 
 #include "TestRotator.hpp"
-#include "openeaagles/base/units/Angles.hpp"
+#include "openeaagles/base/units/angle_utils.hpp"
 #include <GL/glu.h>
 #include <GL/glut.h>
 #include <cmath>
@@ -14,19 +14,10 @@ EMPTY_DELETEDATA(TestRotator)
 TestRotator::TestRotator()
 {
     STANDARD_CONSTRUCTOR()
-    t1Pos = 0;
-    t1Rate = 0.5;
-    t2Pos = 0;
-    t2Rate = 0.7;
-    t3Pos = 0;
-    t3Rate = 0.3;
     light_position[0] = 1;
     light_position[1] = 1;
     light_position[2] = 1;
     light_position[3] = 0;
-    rotate = 0;
-    rotateRate = 20;
-    count = 0;
 }
 
 void TestRotator::copyData(const TestRotator& org, const bool)
@@ -119,8 +110,8 @@ void TestRotator::updateData(const double dt)
     //    rotateRate = -rotateRate;
     //}
 
-    light_position[0] = static_cast<GLfloat>(std::cos(rotate * base::Angle::D2RCC));
-    light_position[1] = static_cast<GLfloat>(std::sin(rotate * base::Angle::D2RCC));
-    light_position[2] = static_cast<GLfloat>(std::sin(rotate * base::Angle::D2RCC));
+    light_position[0] = static_cast<GLfloat>(std::cos(rotate * base::angle::D2RCC));
+    light_position[1] = static_cast<GLfloat>(std::sin(rotate * base::angle::D2RCC));
+    light_position[2] = static_cast<GLfloat>(std::sin(rotate * base::angle::D2RCC));
     light_position[3] = 0;
 }

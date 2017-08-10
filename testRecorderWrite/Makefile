@@ -4,8 +4,9 @@ PGM = testRecorderWrite
 
 OBJS = main.o DataRecordTest.o
 
-LDFLAGS += -loerecorder -loesimulation
-LDFLAGS += -loedafif -loebase
+LDFLAGS += -loe_models -lJSBSim
+LDFLAGS += -loe_recorder -loe_simulation
+LDFLAGS += -loe_terrain -loe_base
 LDFLAGS += -lprotobuf
 LDFLAGS += -lrt -lpthread
 

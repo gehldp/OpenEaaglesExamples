@@ -29,23 +29,12 @@ BEGIN_SLOT_MAP(TestTwo)
     ON_SLOT(8, setV2Min, base::Number)
 END_SLOT_MAP()
 
-//------------------------------------------------------------------------------
-// event handler macro - default - replaces event()
-//------------------------------------------------------------------------------
 BEGIN_EVENT_HANDLER(TestTwo)
 END_EVENT_HANDLER()
 
 TestTwo::TestTwo()
 {
     STANDARD_CONSTRUCTOR()
-    iv1     = 0.0f;
-    iv1Rate = 0.1f;
-    v1Max  = 1.0f;
-    v1Min  = 0.0f;
-    iv2     = 0.0f;
-    iv2Rate = 0.1f;
-    v2Max  = 1.0f;
-    v2Min  = 0.0f;
     reset();
 }
 
@@ -121,11 +110,6 @@ void TestTwo::updateData(const double dt)
     send( "v1Title", SELECT, (v1Rate < 0), v1TitleSD);
     send( "v2", UPDATE_VALUE, v2, v2SD );
     send( "v2Title", SELECT, i, v2TitleSD);
-}
-
-base::Object* TestTwo::getSlotByIndex(const int si)
-{
-    return BaseClass::getSlotByIndex(si);
 }
 
 std::ostream& TestTwo::serialize(std::ostream& sout, const int i, const bool slotsOnly) const

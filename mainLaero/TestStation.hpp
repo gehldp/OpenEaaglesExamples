@@ -5,8 +5,8 @@
 #include "openeaagles/simulation/Station.hpp"
 
 namespace oe {
-   namespace base { class Number; }
-   namespace glut { class GlutDisplay; }
+namespace base { class Number; }
+namespace glut { class GlutDisplay; }
 }
 
 //------------------------------------------------------------------------------
@@ -37,8 +37,8 @@ private:
 
    oe::base::safe_ptr<oe::glut::GlutDisplay> glutDisplay;
    oe::base::safe_ptr<oe::glut::GlutDisplay> mapDisplay;
-   bool glutDisplayInit;
-   bool mapDisplayInit;
+   bool glutDisplayInit {};
+   bool mapDisplayInit {};
 };
 
 #endif

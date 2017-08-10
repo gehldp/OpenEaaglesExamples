@@ -40,9 +40,12 @@ APPLICATIONS += mainLaero
 APPLICATIONS += mainCockpit
 
 # test table, state machines, events and timer
+APPLICATIONS += testDafif
 APPLICATIONS += testEvents
+APPLICATIONS += testMetaObject
 APPLICATIONS += testTables
 APPLICATIONS += testStateMach
+APPLICATIONS += testTemplates
 APPLICATIONS += testTimer
 
 # infrared and radar test programs
@@ -59,13 +62,10 @@ APPLICATIONS += testMatrix
 APPLICATIONS += testRng
 
 # navigation tests
-APPLICATIONS += testNavigation
+APPLICATIONS += testNavUtils
 
 # network handler testing
 APPLICATIONS += testNetHandler
-
-# interoperability network testing
-#APPLICATIONS += testNetIO
 
 # linear systems package
 APPLICATIONS += testLinearSys

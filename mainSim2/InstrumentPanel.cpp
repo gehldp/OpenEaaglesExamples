@@ -3,14 +3,17 @@
 #include "SimStation.hpp"
 #include "SimPlayer.hpp"
 
-#include "openeaagles/instruments/eadi3d/Eadi3DPage.hpp"
+#include "openeaagles/models/player/AirVehicle.hpp"
+#include "openeaagles/models/player/Player.hpp"
+
 #include "openeaagles/simulation/Simulation.hpp"
-#include "openeaagles/simulation/AirVehicle.hpp"
+
+#include "openeaagles/instruments/eadi3d/Eadi3DPage.hpp"
+
+#include "openeaagles/base/Boolean.hpp"
 #include "openeaagles/base/PairStream.hpp"
 #include "openeaagles/base/Pair.hpp"
-#include "openeaagles/base/units/Angles.hpp"
-#include "openeaagles/base/units/Distances.hpp"
-#include "openeaagles/base/Boolean.hpp"
+
 #include <GL/glut.h>
 
 IMPLEMENT_SUBCLASS(InstrumentPanel, "InstrumentPanel")
@@ -18,7 +21,6 @@ EMPTY_SERIALIZER(InstrumentPanel)
 EMPTY_SLOTTABLE(InstrumentPanel)
 EMPTY_DELETEDATA(InstrumentPanel)
 
-// Event() map
 BEGIN_EVENT_HANDLER(InstrumentPanel)
    ON_EVENT('r',onResetKey)
    ON_EVENT('R',onResetKey)
@@ -30,7 +32,6 @@ END_EVENT_HANDLER()
 InstrumentPanel::InstrumentPanel()
 {
    STANDARD_CONSTRUCTOR()
-   myStation = nullptr;
 }
 
 void InstrumentPanel::copyData(const InstrumentPanel& org, const bool)
@@ -39,11 +40,11 @@ void InstrumentPanel::copyData(const InstrumentPanel& org, const bool)
    myStation = nullptr;
 }
 
-oe::simulation::Player* InstrumentPanel::getOwnship()
+oe::models::Player* InstrumentPanel::getOwnship()
 {
-   oe::simulation::Player* p = nullptr;
+   oe::models::Player* p = nullptr;
    oe::simulation::Station* sta = getStation();
-   if (sta != nullptr) p = sta->getOwnship();
+   if (sta != nullptr) p = dynamic_cast<oe::models::Player*>(sta->getOwnship());
    return p;
 }
 
@@ -58,7 +59,7 @@ oe::simulation::Simulation* InstrumentPanel::getSimulation()
 oe::simulation::Station* InstrumentPanel::getStation()
 {
    if (myStation == nullptr) {
-      oe::simulation::Station* s = dynamic_cast<oe::simulation::Station*>( findContainerByType(typeid(oe::simulation::Station)) );
+      const auto s = dynamic_cast<oe::simulation::Station*>( findContainerByType(typeid(oe::simulation::Station)) );
       if (s != nullptr) myStation = s;
    }
    return myStation;
@@ -72,7 +73,7 @@ void InstrumentPanel::updateData(const double dt)
    // try to get an Sim3 first.  If that doesn't work, then get a generic air vehicle
    // Get the data from our ownship, if we have a valid one.  Else everything goes to a default value
    // we need to dynamically cast to an AirVehicle* for this instrument panel
-   oe::simulation::AirVehicle* tempOwnship = dynamic_cast<oe::simulation::AirVehicle*>( getOwnship() );
+   const auto tempOwnship = dynamic_cast<oe::models::AirVehicle*>( getOwnship() );
    if (tempOwnship != nullptr) {
       tempOwnship->ref();
 #if 0
@@ -93,7 +94,7 @@ void InstrumentPanel::updateData(const double dt)
       tempOwnship->unref();
    }
    else {
-      SimPlayer* player = dynamic_cast<SimPlayer*>( getOwnship() );
+      const auto player = dynamic_cast<SimPlayer*>( getOwnship() );
       if (player != nullptr) {
          player->ref();
 
@@ -133,13 +134,13 @@ void InstrumentPanel::updateData(const double dt)
 
    oe::base::Pair* a = findSubpageByType(typeid(oe::instruments::Eadi3DPage));
    if (a != nullptr) {
-      oe::instruments::Eadi3DPage* eadi = dynamic_cast<oe::instruments::Eadi3DPage*>(a->object());
+      const auto eadi = dynamic_cast<oe::instruments::Eadi3DPage*>(a->object());
       if (eadi != nullptr) {
          eadi->setAltitude(altitude);
          eadi->setAirspeed(airSpeed);
          eadi->setHeading(heading);
          eadi->setAOA(aoa);
-         eadi->setVVI(-vvi.z() * oe::base::Distance::M2FT * 60.0);
+         eadi->setVVI(-vvi.z() * oe::base::distance::M2FT * 60.0);
          eadi->setPitch(pitch);
          eadi->setRoll(roll);
          eadi->setMach(mach);
@@ -185,7 +186,7 @@ bool InstrumentPanel::onFreezeKey()
 // Step ownship key
 bool InstrumentPanel::onStepOwnshipKey()
 {
-   SimStation* ts = dynamic_cast<SimStation*>(getStation());
+   const auto ts = dynamic_cast<SimStation*>(getStation());
    if ( ts != nullptr ) {
       ts->stepOwnshipPlayer();
    }

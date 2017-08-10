@@ -1,11 +1,11 @@
 
 #include "Echo.hpp"
 
-#include "openeaagles/base/NetHandler.hpp"
 #include "openeaagles/base/Number.hpp"
-#include "openeaagles/base/util/system.hpp"
+#include "openeaagles/base/util/system_utils.hpp"
 
 #include <cstdlib>
+#include <iostream>
 
 using namespace oe;
 
@@ -17,7 +17,6 @@ EMPTY_DELETEDATA(Echo)
 Echo::Echo()
 {
     STANDARD_CONSTRUCTOR()
-    loopCounter = 0;
 }
 
 void Echo::copyData(const Echo& org, const bool)

@@ -1,8 +1,7 @@
 
 #include "DspRwr.hpp"
 
-#include "openeaagles/simulation/Rwr.hpp"
-#include "openeaagles/base/units/Angles.hpp"
+#include "openeaagles/models/system/Rwr.hpp"
 
 namespace oe {
 namespace xpanel {
@@ -15,7 +14,6 @@ EMPTY_DELETEDATA(DspRwr)
 DspRwr::DspRwr()
 {
    STANDARD_CONSTRUCTOR()
-   rwr = nullptr;
 }
 
 void DspRwr::copyData(const DspRwr& org, const bool)
@@ -54,7 +52,7 @@ void DspRwr::drawFunc()
 
    unsigned int n = rwr->getNumberOfRays();
    for (unsigned int i = 0; i < n; i++) {
-      GLdouble azr = (base::Angle::D2RCC *  rwr->getRayAzimuth(i) );
+      GLdouble azr = (base::angle::D2RCC *  rwr->getRayAzimuth(i) );
       GLdouble pwr = rwr->getRay(i);
       GLdouble up = cos(azr) * pwr;
       GLdouble right = sin(azr) * pwr;

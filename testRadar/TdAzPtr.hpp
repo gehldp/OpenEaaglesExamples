@@ -5,7 +5,7 @@
 #include "openeaagles/graphics/Graphic.hpp"
 
 namespace oe {
-   namespace base { class Number; }
+namespace base { class Number; }
 }
 
 //------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ public:
 private:
    bool onUpdateValue(const oe::base::Number* const msg);
 
-   double azimuth;  // (degs)
+   double azimuth {};  // (degs)
 };
 
 #endif

@@ -20,7 +20,7 @@
 //    UPDATE_VALUE  <Number>  ! elevation angle (degs)
 //------------------------------------------------------------------------------
 namespace oe {
-   namespace base { class Number; }
+namespace base { class Number; }
 }
 
 class TdElevPtr : public oe::graphics::Graphic
@@ -40,7 +40,7 @@ public:
 private:
    bool onUpdateValue(const oe::base::Number* const);
 
-   double elev;  // (degs)
+   double elev {};  // (degs)
 };
 
 #endif

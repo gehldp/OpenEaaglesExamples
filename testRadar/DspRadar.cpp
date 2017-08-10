@@ -1,18 +1,18 @@
 
 #include "DspRadar.hpp"
 
-#include "openeaagles/simulation/Antenna.hpp"
-#include "openeaagles/simulation/Radar.hpp"
-#include "openeaagles/simulation/Track.hpp"
-#include "openeaagles/simulation/TrackManager.hpp"
-#include "openeaagles/base/units/Angles.hpp"
-#include "openeaagles/base/units/Distances.hpp"
+#include "openeaagles/models/system/Antenna.hpp"
+#include "openeaagles/models/system/Radar.hpp"
+#include "openeaagles/models/Track.hpp"
+#include "openeaagles/models/system/TrackManager.hpp"
+
 #include "openeaagles/base/Hsv.hpp"
+
 #include "openeaagles/base/util/math_utils.hpp"
 
 using namespace oe;
 
-IMPLEMENT_SUBCLASS(DspRadar,"DspRadar")
+IMPLEMENT_SUBCLASS(DspRadar, "DspRadar")
 EMPTY_SLOTTABLE(DspRadar)
 EMPTY_SERIALIZER(DspRadar)
 EMPTY_DELETEDATA(DspRadar)
@@ -20,12 +20,6 @@ EMPTY_DELETEDATA(DspRadar)
 DspRadar::DspRadar()
 {
    STANDARD_CONSTRUCTOR()
-
-   radar = nullptr;
-   nTracks = 0;
-   ntsTrk = -1;
-   azSD.empty();
-   elSD.empty();
 }
 
 void DspRadar::copyData(const DspRadar& org, const bool)
@@ -41,7 +35,7 @@ void DspRadar::copyData(const DspRadar& org, const bool)
 
 void DspRadar::updateData(const double dt)
 {
-   const simulation::Antenna* antenna = nullptr;
+   const models::Antenna* antenna = nullptr;
    nTracks = 0;
    ntsTrk = -1;
 
@@ -51,15 +45,15 @@ void DspRadar::updateData(const double dt)
       antenna = radar->getAntenna();
 
       // Get our track manager
-      const simulation::TrackManager* tm = radar->getTrackManager();
+      const models::TrackManager* tm = radar->getTrackManager();
 
       // ---
       // Get the track list and convert them to display coordinates
       if (tm != nullptr) {
-         base::safe_ptr<simulation::Track> trackList[MAX_TRKS];
+         base::safe_ptr<models::Track> trackList[MAX_TRKS];
          unsigned int n = tm->getTrackList(trackList,MAX_TRKS);
          for (unsigned int i = 0; i < n; i++) {
-            osg::Vec3 pos = trackList[i]->getPosition();
+            base::Vec3d pos = trackList[i]->getPosition();
             trkRng[nTracks]       = pos.length();
             trkAz[nTracks]        = trackList[i]->getRelAzimuth();
             trkVel[nTracks]       = trackList[i]->getGroundSpeed();
@@ -72,8 +66,8 @@ void DspRadar::updateData(const double dt)
 
    // Update antenna azimuth and elevation pointers
    if (antenna != nullptr) {
-      send( "azPtr", UPDATE_VALUE, static_cast<float>(base::Angle::R2DCC * antenna->getAzimuth()),   azSD);
-      send( "elPtr", UPDATE_VALUE, static_cast<float>(base::Angle::R2DCC * antenna->getElevation()), elSD);
+      send( "azPtr", UPDATE_VALUE, static_cast<float>(base::angle::R2DCC * antenna->getAzimuth()),   azSD);
+      send( "elPtr", UPDATE_VALUE, static_cast<float>(base::angle::R2DCC * antenna->getElevation()), elSD);
    }
 
    // Update base classes stuff
@@ -103,14 +97,14 @@ void DspRadar::drawFunc()
    {
       static const double GAIN = 3.0f;
 
-      osg::Vec4   rgb;
-      osg::Vec4   hsv;
+      base::Vec4d rgb;
+      base::Vec4d hsv;
 
       unsigned int n = radar->getNumSweeps();
       unsigned int nv = radar->getPtrsPerSweep();
 
-      double sx = static_cast<double>(n-1)/2.0f;
-      double sy = static_cast<double>(nv-1);
+      const double sx = static_cast<double>(n-1)/2.0f;
+      const auto sy = static_cast<double>(nv-1);
 
       const double* s0 = radar->getSweep(0);
       const double* c0 = radar->getClosure(0);
@@ -119,8 +113,8 @@ void DspRadar::drawFunc()
       for (unsigned int i = 1; i < n; i++) {
          const double* s1 = radar->getSweep(i);
          const double* c1 = radar->getClosure(i);
-         double x0 = static_cast<double>(i0)/sx - 1.0f;
-         double x1 = static_cast<double>(i)/sx - 1.0f;
+         const double x0 = static_cast<double>(i0)/sx - 1.0f;
+         const double x1 = static_cast<double>(i)/sx - 1.0f;
 
          glBegin(GL_QUAD_STRIP);
          for (unsigned int j = 0; j < nv; j++) {
@@ -156,13 +150,13 @@ void DspRadar::drawFunc()
    // Draw the tracks
    // ---
    {
-      osg::Vec4   rgb;
-      osg::Vec4   ntsRGB;
-      osg::Vec4   hsv;
+      base::Vec4d rgb;
+      base::Vec4d ntsRGB;
+      base::Vec4d hsv;
 
       // Vertices of the basic symbol
       //static double maxRng = 40000.0;
-      double maxRng = radar->getRange() * base::Distance::NM2M;
+      double maxRng = radar->getRange() * base::distance::NM2M;
       static double ss = 0.05;
 
       // The color
@@ -177,7 +171,7 @@ void DspRadar::drawFunc()
       base::Hsv::hsv2rgb(ntsRGB, hsv);
 
       for (unsigned int i = 0; i < nTracks; i++) {
-         double xp = (base::Angle::R2DCC * trkAz[i])/30.0;
+         double xp = (base::angle::R2DCC * trkAz[i])/30.0;
          double yp = 2.0*trkRng[i]/maxRng;
          if (static_cast<int>(i) == ntsTrk) lcColor3v(ntsRGB.ptr());
          else lcColor3v(rgb.ptr());
@@ -185,7 +179,7 @@ void DspRadar::drawFunc()
          glTranslated(xp, yp, 0.0);
          glScaled(ss, ss, ss);
          if (trkVel[i] > 50.0) {
-            double gt = -(base::Angle::R2DCC * trkRelGndTrk[i]);
+            double gt = -(base::angle::R2DCC * trkRelGndTrk[i]);
             glRotated(gt, 0.0, 0.0, 1.0);
             glBegin(GL_LINE_LOOP);
                glVertex3d( -1.0, -1.0, 0.2 );

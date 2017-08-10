@@ -1,8 +1,8 @@
 
 #include "ServerTcpMultiple.hpp"
 
-#include "openeaagles/base/NetHandler.hpp"
 #include "openeaagles/base/Number.hpp"
+#include <iostream>
 
 using namespace oe;
 

@@ -2,11 +2,7 @@
 #ifndef __SimIoHandler_H__
 #define __SimIoHandler_H__
 
-#include "openeaagles/base/IoHandler.hpp"
-
-namespace oe {
-   namespace simulation { class AirVehicle; }
-}
+#include "openeaagles/base/io/IoHandler.hpp"
 
 //------------------------------------------------------------------------------
 // Class:  SimIoHandler
@@ -27,21 +23,19 @@ protected:
    virtual void clear() override;
 
 private:
-   void initData();
+   bool rstSw1 {};
+   bool frzSw1 {};
+   bool wpnReloadSw1 {};
 
-   bool rstSw1;
-   bool frzSw1;
-   bool wpnReloadSw1;
+   bool wpnRelSw1 {};
+   bool trgSw1 {};
+   bool tgtStepSw1 {};
+   bool tgtDesSw1 {};
+   bool rtn2SrchSw1 {};
 
-   bool wpnRelSw1;
-   bool trgSw1;
-   bool tgtStepSw1;
-   bool tgtDesSw1;
-   bool rtn2SrchSw1;
-
-   bool autopilotSw1;
-   bool incStptSw1;
-   bool decStptSw1;
+   bool autopilotSw1 {};
+   bool incStptSw1 {};
+   bool decStptSw1 {};
 };
 
 #endif

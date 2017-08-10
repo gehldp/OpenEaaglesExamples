@@ -15,25 +15,25 @@
 #include "openeaagles/instruments/factory.hpp"
 
 // test files
-#include "TestSpeedBrake.hpp"
-#include "TestEngineDial.hpp"
-#include "TestCas.hpp"
-#include "TestFtitDial.hpp"
-#include "TestOilPressure.hpp"
-#include "TestNozzle.hpp"
-#include "TestRpmDial.hpp"
-#include "TestHsi.hpp"
-#include "TestGauge1.hpp"
-#include "TestVVI.hpp"
-#include "TestAlt.hpp"
-#include "TestCompass.hpp"
-#include "TestDigitalGauge.hpp"
-#include "TestGMeterDial.hpp"
-#include "TestLandingGear.hpp"
-#include "TestEngPage.hpp"
-#include "TestButtons.hpp"
-#include "TestAdi.hpp"
-#include "TestAdi2.hpp"
+#include "test_pages/TestSpeedBrake.hpp"
+#include "test_pages/TestEngineDial.hpp"
+#include "test_pages/TestCas.hpp"
+#include "test_pages/TestFtitDial.hpp"
+#include "test_pages/TestOilPressure.hpp"
+#include "test_pages/TestNozzle.hpp"
+#include "test_pages/TestRpmDial.hpp"
+#include "test_pages/TestHsi.hpp"
+#include "test_pages/TestGauge1.hpp"
+#include "test_pages/TestVVI.hpp"
+#include "test_pages/TestAlt.hpp"
+#include "test_pages/TestCompass.hpp"
+#include "test_pages/TestDigitalGauge.hpp"
+#include "test_pages/TestGMeterDial.hpp"
+#include "test_pages/TestLandingGear.hpp"
+#include "test_pages/TestEngPage.hpp"
+#include "test_pages/TestButtons.hpp"
+#include "test_pages/TestAdi.hpp"
+#include "test_pages/TestAdi2.hpp"
 
 #include <string>
 #include <cstdlib>
@@ -47,7 +47,7 @@ oe::glut::GlutDisplay* glutDisplay = nullptr;
 void timerFunc(int)
 {
    const double dt = 1.0 / static_cast<double>(frameRate);
-   const unsigned int millis = static_cast<unsigned int>(dt * 1000);
+   const auto millis = static_cast<unsigned int>(dt * 1000);
    glutTimerFunc(millis, timerFunc, 1);
 
    oe::base::Timer::updateTimers(dt);
@@ -164,7 +164,7 @@ oe::glut::GlutDisplay* builder(const std::string& filename)
    }
 
    // do we have a base::Pair, if so, point to object in Pair, not Pair itself
-   oe::base::Pair* pair = dynamic_cast<oe::base::Pair*>(obj);
+   const auto pair = dynamic_cast<oe::base::Pair*>(obj);
    if (pair != nullptr) {
       obj = pair->object();
       obj->ref();
@@ -172,7 +172,7 @@ oe::glut::GlutDisplay* builder(const std::string& filename)
    }
 
    // try to cast to proper object, and check
-   oe::glut::GlutDisplay* glutDisplay = dynamic_cast<oe::glut::GlutDisplay*>(obj);
+   const auto glutDisplay = dynamic_cast<oe::glut::GlutDisplay*>(obj);
    if (glutDisplay == nullptr) {
       std::cerr << "Invalid configuration file!" << std::endl;
       std::exit(EXIT_FAILURE);
@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
 
    // set timer
    const double dt = 1.0 / static_cast<double>(frameRate);
-   const unsigned int millis = static_cast<unsigned int>(dt * 1000);
+   const auto millis = static_cast<unsigned int>(dt * 1000);
    glutTimerFunc(millis, timerFunc, 1);
 
    glutMainLoop();

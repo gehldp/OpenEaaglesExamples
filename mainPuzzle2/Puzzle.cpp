@@ -3,22 +3,17 @@
 #include "State.hpp"
 
 #include "openeaagles/base/List.hpp"
+#include <iostream>
 
 using namespace oe;
 
 IMPLEMENT_SUBCLASS(Puzzle, "Puzzle")
 
-//------------------------------------------------------------------------------
-// Slot table for this factory type
-//------------------------------------------------------------------------------
 BEGIN_SLOTTABLE(Puzzle)
     "initState",      //  1: Our initial state
     "goalState",      //  2: Our goal state
 END_SLOTTABLE(Puzzle)
 
-//------------------------------------------------------------------------------
-//  Map slot table to handles
-//------------------------------------------------------------------------------
 BEGIN_SLOT_MAP(Puzzle)
     ON_SLOT( 1, setInitState, State )
     ON_SLOT( 2, setGoalState, State )
@@ -27,30 +22,11 @@ END_SLOT_MAP()
 Puzzle::Puzzle()
 {
    STANDARD_CONSTRUCTOR()
-
-   initState = nullptr;
-   goalState = nullptr;
-   openStates = nullptr;
-
-   for (unsigned int i = 0; i < MAX_STATES; i++) {
-      hashTable[i] = nullptr;
-   }
-   nhe = 0;
 }
 
-void Puzzle::copyData(const Puzzle& org, const bool cc)
+void Puzzle::copyData(const Puzzle& org, const bool)
 {
    BaseClass::copyData(org);
-
-   if (cc) {
-      initState = nullptr;
-      goalState = nullptr;
-      openStates = nullptr;
-      for (unsigned int i = 0; i < MAX_STATES; i++) {
-         hashTable[i] = nullptr;
-      }
-      nhe = 0;
-   }
 
    setInitState(nullptr);
    if (org.initState != nullptr) {
@@ -197,7 +173,7 @@ void Puzzle::putOpen(State* const s)
 
    if (s != nullptr) {
       // Create a new list item for this state and get the state's f() value
-      base::List::Item* newItem = new base::List::Item();
+      const auto newItem = new base::List::Item();
       newItem->value = s;
       s->ref();
       int f = s->f();
@@ -206,7 +182,7 @@ void Puzzle::putOpen(State* const s)
       base::List::Item* item = openStates->getFirstItem();
       base::List::Item* refItem = nullptr;
       while (item != nullptr && refItem == nullptr) {
-         const State* p = static_cast<const State*>( item->getValue() );
+         const auto p = static_cast<const State*>( item->getValue() );
          if (f < p->f()) {
             refItem = item;
          }
@@ -311,11 +287,6 @@ void Puzzle::clearHashTable()
       }
    }
    nhe = 0;
-}
-
-base::Object* Puzzle::getSlotByIndex(const int si)
-{
-    return BaseClass::getSlotByIndex(si);
 }
 
 std::ostream& Puzzle::serialize(std::ostream& sout, const int i, const bool slotsOnly) const

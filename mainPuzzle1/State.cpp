@@ -19,26 +19,13 @@ END_SLOT_MAP()
 State::State()
 {
    STANDARD_CONSTRUCTOR()
-
-   for (unsigned int i = 0; i < MAX_BLOCKS; i++) {
-      blocks[i] = nullptr;
-   }
-   nblocks = 0;
-
-   expanded = false;
-   generation = 0;
 }
 
 State::State(const State& org, const Block* const nb, const unsigned int idx)
 {
    STANDARD_CONSTRUCTOR()
 
-   for (unsigned int i = 0; i < MAX_BLOCKS; i++) {
-      blocks[i] = nullptr;
-   }
-   nblocks = 0;
-
-   setBlocks(org.blocks, org.nblocks);
+   setBlocks(org.blocks.data(), org.nblocks);
 
    if (nb != nullptr && idx < nblocks) {
       if (blocks[idx] != nullptr) blocks[idx]->unref();
@@ -47,24 +34,16 @@ State::State(const State& org, const Block* const nb, const unsigned int idx)
    sortBlocks();
 
    generation = org.getGeneration() + 1;
-   expanded = false;
 }
 
-void State::copyData(const State& org, const bool cc)
+void State::copyData(const State& org, const bool)
 {
    BaseClass::copyData(org);
-
-   if (cc) {
-      for (unsigned int i = 0; i < MAX_BLOCKS; i++) {
-         blocks[i] = nullptr;
-      }
-      nblocks = 0;
-   }
 
    expanded = org.expanded;
    generation = org.generation;
 
-   setBlocks(org.blocks, org.nblocks);
+   setBlocks(org.blocks.data(), org.nblocks);
 }
 
 void State::deleteData()
@@ -225,7 +204,7 @@ const State* State::stateFactory(const Block* const nb, const unsigned int idx, 
    if (nb != nullptr && idx < nblocks && goal != nullptr) {
 
       // create a new state with this block.
-      State* ns = new State(*this,nb,idx);
+      const auto ns = new State(*this,nb,idx);
       ns->container(this);
 
       // try to put the new state on the hash table
@@ -359,8 +338,8 @@ bool State::setSlotBlocks(const oe::base::PairStream* const msg)
       // Find all blocks (and check their type to make sure)
       const oe::base::List::Item* item = msg->getFirstItem();
       while (item != nullptr && n < MAX_BLOCKS && ok) {
-         const oe::base::Pair* pair = static_cast<const oe::base::Pair*>(item->getValue());
-         const Block* p = dynamic_cast<const Block*>( pair->object() );
+         const auto pair = static_cast<const oe::base::Pair*>(item->getValue());
+         const auto p = dynamic_cast<const Block*>( pair->object() );
          if (p != nullptr) {
             newBlocks[n++] = p;  // Save the point
          }
@@ -377,11 +356,6 @@ bool State::setSlotBlocks(const oe::base::PairStream* const msg)
       }
    }
    return ok;
-}
-
-oe::base::Object* State::getSlotByIndex(const int si)
-{
-    return BaseClass::getSlotByIndex(si);
 }
 
 std::ostream& State::serialize(std::ostream& sout, const int i, const bool slotsOnly) const

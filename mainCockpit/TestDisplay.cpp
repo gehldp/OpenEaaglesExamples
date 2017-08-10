@@ -5,19 +5,21 @@
 #include "xpanel/DspRwr.hpp"
 #include "xpanel/Pfd.hpp"
 
-#include "openeaagles/simulation/AirVehicle.hpp"
-#include "openeaagles/simulation/Missile.hpp"
-#include "openeaagles/simulation/Jammer.hpp"
-#include "openeaagles/simulation/Radar.hpp"
-#include "openeaagles/simulation/Rwr.hpp"
+#include "openeaagles/models/player/AirVehicle.hpp"
+#include "openeaagles/models/player/Missile.hpp"
+
+#include "openeaagles/models/system/Jammer.hpp"
+#include "openeaagles/models/system/Radar.hpp"
+#include "openeaagles/models/system/Rwr.hpp"
+#include "openeaagles/models/system/StoresMgr.hpp"
+#include "openeaagles/models/sensor/Gmti.hpp"
+#include "openeaagles/models/sensor/Tws.hpp"
+
 #include "openeaagles/simulation/Simulation.hpp"
-#include "openeaagles/simulation/StoresMgr.hpp"
-#include "openeaagles/models/sensors/Gmti.hpp"
-#include "openeaagles/models/sensors/Tws.hpp"
+
 #include "openeaagles/base/Boolean.hpp"
 #include "openeaagles/base/Pair.hpp"
 #include "openeaagles/base/PairStream.hpp"
-#include "openeaagles/base/units/Distances.hpp"
 #include "openeaagles/graphics/SymbolLoader.hpp"
 #include <GL/glut.h>
 
@@ -242,9 +244,9 @@ bool TestDisplay::onRtn2SearchKey()
 bool TestDisplay::onAir2AirKey()
 {
    if (getOwnship() != nullptr) {
-      oe::simulation::StoresMgr* sms = getOwnship()->getStoresManagement();
+      oe::models::StoresMgr* sms = getOwnship()->getStoresManagement();
       if (sms != nullptr) {
-         sms->setWeaponDeliveryMode(oe::simulation::StoresMgr::A2A);
+         sms->setWeaponDeliveryMode(oe::models::StoresMgr::A2A);
          std::cout << "Set A/A Weapon Mode!" << std::endl;
       }
    }
@@ -255,9 +257,9 @@ bool TestDisplay::onAir2AirKey()
 bool TestDisplay::onAir2GndKey()
 {
    if (getOwnship() != nullptr) {
-      oe::simulation::StoresMgr* sms = getOwnship()->getStoresManagement();
+      oe::models::StoresMgr* sms = getOwnship()->getStoresManagement();
       if (sms != nullptr) {
-         sms->setWeaponDeliveryMode(oe::simulation::StoresMgr::A2G);
+         sms->setWeaponDeliveryMode(oe::models::StoresMgr::A2G);
          std::cout << "Set A/G Weapon Mode!" << std::endl;
       }
    }
@@ -268,17 +270,17 @@ bool TestDisplay::onAir2GndKey()
 bool TestDisplay::onIncRngKey()
 {
    if (getOwnship() != nullptr) {
-      oe::simulation::Radar* rdr = nullptr;
+      oe::models::Radar* rdr = nullptr;
       {
          oe::base::Pair* pair = getOwnship()->getSensorByType(typeid(oe::models::Tws));
-         if (pair != nullptr) rdr = static_cast<oe::simulation::Radar*>( pair->object() );
+         if (pair != nullptr) rdr = static_cast<oe::models::Radar*>( pair->object() );
       }
-      oe::simulation::StoresMgr* sms = getOwnship()->getStoresManagement();
+      oe::models::StoresMgr* sms = getOwnship()->getStoresManagement();
       if (sms != nullptr) {
          // But could be GMTI ...
-         if (sms->isWeaponDeliveryMode(oe::simulation::StoresMgr::A2G)) {
+         if (sms->isWeaponDeliveryMode(oe::models::StoresMgr::A2G)) {
             oe::base::Pair* pair = getOwnship()->getSensorByType(typeid(oe::models::Gmti));
-            if (pair != nullptr) rdr = static_cast<oe::simulation::Radar*>(pair->object());
+            if (pair != nullptr) rdr = static_cast<oe::models::Radar*>(pair->object());
          }
       }
       if (rdr != nullptr) {
@@ -295,17 +297,17 @@ bool TestDisplay::onIncRngKey()
 bool TestDisplay::onDecRngKey()
 {
    if (getOwnship() != nullptr) {
-      oe::simulation::Radar* rdr = nullptr;
+      oe::models::Radar* rdr = nullptr;
       {
          oe::base::Pair* pair = getOwnship()->getSensorByType(typeid(oe::models::Tws));
-         if (pair != nullptr) rdr = static_cast<oe::simulation::Radar*>(pair->object());
+         if (pair != nullptr) rdr = static_cast<oe::models::Radar*>(pair->object());
       }
-      oe::simulation::StoresMgr* sms = getOwnship()->getStoresManagement();
+      oe::models::StoresMgr* sms = getOwnship()->getStoresManagement();
       if (sms != nullptr) {
          // But could be GMTI ...
-         if (sms->isWeaponDeliveryMode(oe::simulation::StoresMgr::A2G)) {
+         if (sms->isWeaponDeliveryMode(oe::models::StoresMgr::A2G)) {
             oe::base::Pair* pair = getOwnship()->getSensorByType(typeid(oe::models::Gmti));
-            if (pair != nullptr) rdr = static_cast<oe::simulation::Radar*>(pair->object());
+            if (pair != nullptr) rdr = static_cast<oe::models::Radar*>(pair->object());
          }
       }
       if (rdr != nullptr) {
@@ -321,7 +323,7 @@ bool TestDisplay::onDecRngKey()
 // Step ownship key
 bool TestDisplay::onStepOwnshipKey()
 {
-   SimStation* ts = dynamic_cast<SimStation*>(getStation());
+   const auto ts = dynamic_cast<SimStation*>(getStation());
    if ( ts != nullptr ) {
       ts->stepOwnshipPlayer();
    }
@@ -350,17 +352,17 @@ void TestDisplay::updateData(const double dt)
    }
    if (rdrDisplay != nullptr && getOwnship() != nullptr) {
       // Default is TWS
-      oe::simulation::Radar* rdr = nullptr;
+      oe::models::Radar* rdr = nullptr;
       {
          oe::base::Pair* pair = getOwnship()->getSensorByType(typeid(oe::models::Tws));
-         if (pair != nullptr) rdr = static_cast<oe::simulation::Radar*>(pair->object());
+         if (pair != nullptr) rdr = static_cast<oe::models::Radar*>(pair->object());
       }
-      oe::simulation::StoresMgr* sms = getOwnship()->getStoresManagement();
+      oe::models::StoresMgr* sms = getOwnship()->getStoresManagement();
       if (sms != nullptr) {
          // But could be GMTI ...
-         if (sms->isWeaponDeliveryMode(oe::simulation::StoresMgr::A2G)) {
+         if (sms->isWeaponDeliveryMode(oe::models::StoresMgr::A2G)) {
             oe::base::Pair* pair = getOwnship()->getSensorByType(typeid(oe::models::Gmti));
-            if (pair != nullptr) rdr = static_cast<oe::simulation::Radar*>(pair->object());
+            if (pair != nullptr) rdr = static_cast<oe::models::Radar*>(pair->object());
          }
       }
       rdrDisplay->setRadar(rdr);
@@ -373,26 +375,26 @@ void TestDisplay::updateData(const double dt)
       if (p != nullptr) rwrDisplay = dynamic_cast<oe::xpanel::DspRwr*>( p->object() );
    }
    if (rwrDisplay != nullptr && getOwnship() != nullptr) {
-      oe::simulation::Rwr* rwr = nullptr;
-      oe::base::Pair* pair = getOwnship()->getSensorByType(typeid(oe::simulation::Rwr));
-      if (pair != nullptr) rwr = static_cast<oe::simulation::Rwr*>(pair->object());
+      oe::models::Rwr* rwr = nullptr;
+      oe::base::Pair* pair = getOwnship()->getSensorByType(typeid(oe::models::Rwr));
+      if (pair != nullptr) rwr = static_cast<oe::models::Rwr*>(pair->object());
       rwrDisplay->setRwr(rwr);
    }
 
    // Send flight data to readouts
    if (getOwnship() != nullptr) {
       {
-         oe::simulation::Radar* rdr = nullptr;
+         oe::models::Radar* rdr = nullptr;
          {
             oe::base::Pair* pair = getOwnship()->getSensorByType(typeid(oe::models::Tws));
-            if (pair != nullptr) rdr = static_cast<oe::simulation::Radar*>(pair->object());
+            if (pair != nullptr) rdr = static_cast<oe::models::Radar*>(pair->object());
          }
-         oe::simulation::StoresMgr* sms = getOwnship()->getStoresManagement();
+         oe::models::StoresMgr* sms = getOwnship()->getStoresManagement();
          if (sms != nullptr) {
             // But could be GMTI ...
-            if (sms->isWeaponDeliveryMode(oe::simulation::StoresMgr::A2G)) {
+            if (sms->isWeaponDeliveryMode(oe::models::StoresMgr::A2G)) {
                oe::base::Pair* pair = getOwnship()->getSensorByType(typeid(oe::models::Gmti));
-               if (pair != nullptr) rdr = static_cast<oe::simulation::Radar*>(pair->object());
+               if (pair != nullptr) rdr = static_cast<oe::models::Radar*>(pair->object());
             }
          }
          if (rdr != nullptr) range = rdr->getRange();
@@ -404,7 +406,7 @@ void TestDisplay::updateData(const double dt)
       // Maintain Air Tracks
       oe::base::Pair* pair = findByName("airTracks1");
       if (pair != nullptr) {
-         oe::graphics::SymbolLoader* myLoader = dynamic_cast<oe::graphics::SymbolLoader*>(pair->object());
+         const auto myLoader = dynamic_cast<oe::graphics::SymbolLoader*>(pair->object());
          if (myLoader != nullptr) {
             myLoader->setRange(range);
             myLoader->setHeadingDeg(getOwnship()->getHeadingD());
@@ -425,7 +427,7 @@ void TestDisplay::mouseEvent(const int button, const int state, const int x, con
    if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
       oe::base::Pair* pair = findByName("airTracks1");
       if (pair != nullptr) {
-         oe::graphics::SymbolLoader* myLoader = dynamic_cast<oe::graphics::SymbolLoader*>(pair->object());
+         const auto myLoader = dynamic_cast<oe::graphics::SymbolLoader*>(pair->object());
          if (myLoader != nullptr) {
             oe::graphics::Graphic* selected = pick(0);
             if (selected != nullptr) {
@@ -453,7 +455,7 @@ void TestDisplay::maintainAirTrackSymbols(oe::graphics::SymbolLoader* loader, co
     int codes[MAX_TRACKS];              // Work codes: empty(0), matched(1), unmatched(-1)
     double rng2 = (rng * rng);          // Range squared (KM * KM)
 
-    oe::simulation::Player* newTracks[MAX_TRACKS];  // New tracks to add
+    oe::models::Player* newTracks[MAX_TRACKS];  // New tracks to add
     int nNewTracks = 0;                         // Number of new tracks
 
     // The real maximum number of tracks is the smaller of MAX_TRACKS and the loader's maximum
@@ -476,17 +478,17 @@ void TestDisplay::maintainAirTrackSymbols(oe::graphics::SymbolLoader* loader, co
         oe::base::List::Item* item = plist->getFirstItem();
         while (item != nullptr && nNewTracks < maxTracks) {
 
-            oe::base::Pair* pair = static_cast<oe::base::Pair*>(item->getValue());
-            oe::simulation::Player* p = static_cast<oe::simulation::Player*>(pair->object());
-            oe::osg::Vec3 rpos = p->getPosition() - getOwnship()->getPosition();
-            double x = rpos[0] * oe::base::Distance::M2NM;
-            double y = rpos[1] * oe::base::Distance::M2NM;
+            const auto pair = static_cast<oe::base::Pair*>(item->getValue());
+            const auto p = static_cast<oe::models::Player*>(pair->object());
+            oe::base::Vec3d rpos = p->getPosition() - getOwnship()->getPosition();
+            double x = rpos[0] * oe::base::distance::M2NM;
+            double y = rpos[1] * oe::base::distance::M2NM;
 
             if (
                p != getOwnship() &&
                p->isActive() &&
                ((x*x + y*y) < rng2) &&
-               (p->isClassType(typeid(oe::simulation::AirVehicle)) || p->isClassType(typeid(oe::simulation::Missile))) ) {
+               (p->isClassType(typeid(oe::models::AirVehicle)) || p->isClassType(typeid(oe::models::Missile))) ) {
                 // Ok, it's an active air vehicle or missile that's within range, and it's not us.
 
                 // Are we already in the track list?
@@ -535,15 +537,15 @@ void TestDisplay::maintainAirTrackSymbols(oe::graphics::SymbolLoader* loader, co
                 // We have an empty slot, so add the symbol
 
                 int type = 4;                                       // unknown
-                if (newTracks[inew]->isClassType(typeid(oe::simulation::AirVehicle))) {
-                  if (newTracks[inew]->getSensorByType(typeid(oe::simulation::Jammer)) == nullptr) {
+                if (newTracks[inew]->isClassType(typeid(oe::models::AirVehicle))) {
+                  if (newTracks[inew]->getSensorByType(typeid(oe::models::Jammer)) == nullptr) {
                      // non-jammers
-                     if (newTracks[inew]->isSide(oe::simulation::Player::BLUE)) type = 1;      // friend
-                     else if (newTracks[inew]->isSide(oe::simulation::Player::RED)) type = 2; // foe
+                     if (newTracks[inew]->isSide(oe::models::Player::BLUE)) type = 1;      // friend
+                     else if (newTracks[inew]->isSide(oe::models::Player::RED)) type = 2; // foe
                      else type = 3; // neutral/commercial
                   }
                 }
-                else if (newTracks[inew]->isClassType(typeid(oe::simulation::Missile))) {
+                else if (newTracks[inew]->isClassType(typeid(oe::models::Missile))) {
                    type = 5; // Missile
                 }
 
@@ -573,7 +575,7 @@ void TestDisplay::maintainAirTrackSymbols(oe::graphics::SymbolLoader* loader, co
         if (tracks[i] != nullptr && trkIdx[i] != 0) {
             double xp = tracks[i]->getXPosition() - osX;
             double yp = tracks[i]->getYPosition() - osY;
-            loader->updateSymbolPositionXY( trkIdx[i], (xp * oe::base::Distance::M2NM), (yp * oe::base::Distance::M2NM) );
+            loader->updateSymbolPositionXY( trkIdx[i], (xp * oe::base::distance::M2NM), (yp * oe::base::distance::M2NM) );
             loader->updateSymbolHeading( trkIdx[i], tracks[i]->getHeadingD() );
         }
     }
@@ -582,11 +584,13 @@ void TestDisplay::maintainAirTrackSymbols(oe::graphics::SymbolLoader* loader, co
 //------------------------------------------------------------------------------
 // Simulation access functions
 //------------------------------------------------------------------------------
-oe::simulation::Player* TestDisplay::getOwnship()
+oe::models::Player* TestDisplay::getOwnship()
 {
-   oe::simulation::Player* p = nullptr;
+   oe::models::Player* p = nullptr;
    oe::simulation::Station* sta = getStation();
-   if (sta != nullptr) p = sta->getOwnship();
+   if (sta != nullptr) {
+      p = dynamic_cast<oe::models::Player*>(sta->getOwnship());  // DDH
+   }
    return p;
 }
 
@@ -601,7 +605,7 @@ oe::simulation::Simulation* TestDisplay::getSimulation()
 oe::simulation::Station* TestDisplay::getStation()
 {
    if (myStation == nullptr) {
-      oe::simulation::Station* s = dynamic_cast<oe::simulation::Station*>( findContainerByType(typeid(oe::simulation::Station)) );
+      const auto s = dynamic_cast<oe::simulation::Station*>( findContainerByType(typeid(oe::simulation::Station)) );
       if (s != nullptr) myStation = s;
    }
    return myStation;
@@ -612,7 +616,7 @@ oe::simulation::Station* TestDisplay::getStation()
 //------------------------------------------------------------------------------
 void TestDisplay::updatePfd(const double)
 {
-    oe::simulation::AirVehicle* av = static_cast<oe::simulation::AirVehicle*>(getOwnship());
+    const auto av = static_cast<oe::models::AirVehicle*>(getOwnship());
 
     // pitch
     pitch = av->getPitchD();
@@ -655,9 +659,9 @@ void TestDisplay::updatePfd(const double)
     latDev = 0;
 
     // vvi tape gauge test
-    const oe::osg::Vec3 vel = av->getVelocity();
+    const oe::base::Vec3d vel = av->getVelocity();
     const double vvMps = -vel[2];
-    vvi = vvMps * 60.0f * oe::base::Distance::M2FT;
+    vvi = vvMps * 60.0f * oe::base::distance::M2FT;
 
     // flight director stuff
     // flight diretor bank angle
@@ -671,7 +675,7 @@ void TestDisplay::updatePfd(const double)
 
     oe::base::Pair* pair = findByType(typeid(oe::xpanel::Pfd));
     if (pair != nullptr) {
-        oe::xpanel::Pfd* p = static_cast<oe::xpanel::Pfd*>(pair->object());
+        const auto p = static_cast<oe::xpanel::Pfd*>(pair->object());
         if (p != nullptr) {
             p->setPitchDeg(pitch);
             p->setRollDeg(roll);

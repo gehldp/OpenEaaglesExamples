@@ -1,12 +1,7 @@
 
 #include "Pfd.hpp"
 #include "openeaagles/base/Pair.hpp"
-#include "openeaagles/base/units/Distances.hpp"
-
-// disable all deprecation warnings for now, until we fix
-#if(_MSC_VER>=1400)   // VC8+
-# pragma warning(disable: 4996)
-#endif
+#include "openeaagles/base/units/distance_utils.hpp"
 
 using namespace oe;
 
@@ -17,78 +12,6 @@ EMPTY_DELETEDATA(Pfd)
 Pfd::Pfd()
 {
     STANDARD_CONSTRUCTOR()
-    // pitch and roll
-    pitch = 0.0;
-    pitchSD.empty();
-    roll = 0.0;
-    rollSD.empty();
-    // bank angle
-    baSD.empty();
-    bascaleSD.empty();
-    // heading and nav stuff
-    trueHdg = 0.0;
-    tHdgSD.empty();
-    cmdHdg = 0.0;
-    cmdHdgROSD.empty();
-    // airspeed
-    airSpd = 100.0;
-    airSpdTpSD.empty();
-    onesSD.empty();
-    spdRstSD.empty();
-    // altitude
-    alt = 1000.0;
-    altSD.empty();
-    alt1SD.empty();
-    alt2SD.empty();
-    alt3SD.empty();
-    altTpSD.empty();
-    altTensSD.empty();
-    altSelectSD.empty();
-    // side slip
-
-    slip = 0.0;
-    slipSD.empty();
-    // glideslope
-    gSlope = 0.0;
-    gSlopeSD.empty();
-    // lateral deviation
-    latDev = 0.0;
-    latDevSD.empty();
-    // commanded speed
-    cmdSpd = 0.0;
-    aBugSD.empty();
-    diffSD.empty();
-    // commanded alt
-    cmdAlt = 5000.0;
-    altBugSD.empty();
-    altDiffSD.empty();
-    // vvi
-    vvi = 0.0;
-    vviSD.empty();
-    vviROSD.empty();
-    // flight director (command bars)
-    fDirBank = 0.0;
-    fDirBankSD.empty();
-    fDirPitch = 0.0;
-    fDirPitchSD.empty();
-    // selected barometric pressure
-    baro = 0.0;
-    baroSD.empty();
-    // Hsi send data
-    trueHdgSD.empty();
-    cmdHdgSD.empty();
-    // lat and lon
-    refLat = 0.0;
-    refLon = 0.0;
-    range = 0.0;
-    // Gs
-    gLoad = 0.0;
-    // mach
-    mach = 0.0;
-    //// altitude (meters)
-    mAltSD.empty();
-    cmdMAltSD.empty();
-    pitchGhostSD.empty();
 }
 
 void Pfd::copyData(const Pfd& org, const bool)
@@ -127,7 +50,7 @@ bool Pfd::setPitchDeg(const double newP)
 bool Pfd::setPitchRad(const double newP)
 {
     // convert to degrees
-    pitch = static_cast<double>(newP * base::Angle::R2DCC);
+    pitch = static_cast<double>(newP * base::angle::R2DCC);
     return true;
 }
 
@@ -140,7 +63,7 @@ bool Pfd::setRollDeg(const double newR)
 bool Pfd::setRollRad(const double newR)
 {
     // convert to degrees
-    roll = static_cast<double>(newR * base::Angle::R2DCC);
+    roll = static_cast<double>(newR * base::angle::R2DCC);
     return true;
 }
 
@@ -213,7 +136,7 @@ bool Pfd::setFltDirBankDeg(const double newFDB)
 
 bool Pfd::setFltDirBankRad(const double newFDB)
 {
-    fDirBank = static_cast<double>(newFDB * base::Angle::R2DCC);
+    fDirBank = static_cast<double>(newFDB * base::angle::R2DCC);
     return true;
 }
 
@@ -225,7 +148,7 @@ bool Pfd::setFltDirPitchDeg(const double newFDP)
 
 bool Pfd::setFltDirPitchRad(const double newFDP)
 {
-    fDirPitch = static_cast<double>(newFDP * base::Angle::R2DCC);
+    fDirPitch = static_cast<double>(newFDP * base::angle::R2DCC);
     return true;
 }
 
@@ -270,16 +193,16 @@ void Pfd::updateData(const double dt)
     // find the last digit for the readout tape
     double ones = ((airSpd / 10) - static_cast<int>(airSpd / 10)) * 10;
     // find the 100s value for the dynamic arc segment
-    int rest = static_cast<int>(airSpd / 10.0);
+    const auto rest = static_cast<int>(airSpd / 10.0);
 
-    double diff = airSpd - cmdSpd;
+    const double diff = airSpd - cmdSpd;
 
-    double altDiff = alt - cmdAlt;
+    const double altDiff = alt - cmdAlt;
     // let's break the altitude down into ones and tens, so we can
     // send that data to the tape gauge
-    double altTens = ((alt/100) - static_cast<int>(alt/100)) * 10;
+    const double altTens = ((alt/100) - static_cast<int>(alt/100)) * 10;
     // now figure the rest of the number
-    int altRest = static_cast<int>(alt/99.9999);
+    const auto altRest = static_cast<int>(alt/99.9999);
 
     // all the sends are here
     // hsi
@@ -328,8 +251,8 @@ void Pfd::updateData(const double dt)
     // send our ghost horizon data
     send("ghosthorizonbar", UPDATE_INSTRUMENTS, pitch, pitchGhostSD);
     // convert alt to meters and send it to our meters readout
-    int mAlt = static_cast<int>(base::Distance::FeetToMeters(alt));
-    double mAltBug = base::Distance::FeetToMeters(cmdAlt);
+    auto mAlt = static_cast<int>(base::distance::FeetToMeters(alt));
+    double mAltBug = base::distance::FeetToMeters(cmdAlt);
     send("malt", UPDATE_VALUE, mAlt, mAltSD);
     send("cmdmalt", UPDATE_VALUE, mAltBug, cmdMAltSD);
 }

@@ -2,47 +2,28 @@
 #include "MapPage.hpp"
 #include "Station.hpp"
 #include "Display.hpp"
-#include "openeaagles/simulation/Player.hpp"
-#include "openeaagles/simulation/Simulation.hpp"
+
+#include "openeaagles/models/player/Player.hpp"
+#include "openeaagles/models/WorldModel.hpp"
+
 #include "openeaagles/graphics/SymbolLoader.hpp"
 #include "openeaagles/graphics/Display.hpp"
+
 #include "openeaagles/base/Pair.hpp"
 #include "openeaagles/base/PairStream.hpp"
 #include "openeaagles/base/util/math_utils.hpp"
 
-IMPLEMENT_SUBCLASS(MapPage,"MapTestMapPage")
+IMPLEMENT_SUBCLASS(MapPage, "MapTestMapPage")
 EMPTY_SLOTTABLE(MapPage)
 EMPTY_SERIALIZER(MapPage)
 
 MapPage::MapPage()
 {
     STANDARD_CONSTRUCTOR()
-    for (unsigned int i = 0; i < MAX_PLAYERS; i++) {
-        player[i] = nullptr;
-        playerIdx[i] = -1;
-    }
-    stn = nullptr;
-    loader = nullptr;
-
-    for (unsigned int i = 0; i < MAX_READOUTS; i++) {
-        latsSD[i].empty();
-        lats[i] = 0;
-        latReadoutXPosSD[i].empty();
-        latReadoutXPos[i] = 0.0;
-        latReadoutYPosSD[i].empty();
-        latReadoutYPos[i] = 0.0;
-        lonsSD[i].empty();
-        lons[i] = 0;
-        lonReadoutXPosSD[i].empty();
-        lonReadoutXPos[i] = 0.0;
-        lonReadoutYPosSD[i].empty();
-        lonReadoutYPos[i] = 0.0;
-    }
 }
 
 void MapPage::copyData(const MapPage& org, const bool)
 {
-    // copy base class stuff first
     BaseClass::copyData(org);
 
     // regardless of copy, we will create all new symbols
@@ -124,7 +105,7 @@ void MapPage::drawFunc()
     latRange *= 2;
 
     // get our viewport
-    Display* dis = static_cast<Display*>(getDisplay());
+    const auto dis = static_cast<Display*>(getDisplay());
     if (dis != nullptr) {
         int start = oe::base::nint(static_cast<double>(southernLat) - 1);
         GLdouble l = 0, r = 0, t = 0, b = 0, n = 0, f = 0;
@@ -198,7 +179,7 @@ void MapPage::updateData(const double dt)
             if (stn != nullptr) {
                 stn->ref();
                 // set our reference lat / lon initially
-                oe::simulation::Simulation* sim = stn->getSimulation();
+                const auto sim = dynamic_cast<oe::models::WorldModel*>(stn->getSimulation());
                 if (sim != nullptr) {
                     setReferenceLatDeg(sim->getRefLatitude());
                     setReferenceLonDeg(sim->getRefLongitude());
@@ -212,14 +193,14 @@ void MapPage::updateData(const double dt)
         oe::base::PairStream* stream = stn->getPlayers();
         if (stream != nullptr) {
             // create our new player list
-            oe::simulation::Player* newPlayers[MAX_PLAYERS];
+            oe::models::Player* newPlayers[MAX_PLAYERS];
             unsigned int numNewPlayers = 0;
             // go through all of our non-ownship players and populate our new list
             oe::base::List::Item* item = stream->getFirstItem();
             while (item != nullptr && numNewPlayers < MAX_PLAYERS) {
-                oe::base::Pair* pair = static_cast<oe::base::Pair*>(item->getValue());
+                const auto pair = static_cast<oe::base::Pair*>(item->getValue());
                 if (pair != nullptr) {
-                    oe::simulation::Player* ply = dynamic_cast<oe::simulation::Player*>(pair->object());
+                    const auto ply = dynamic_cast<oe::models::Player*>(pair->object());
                     if (ply != nullptr) {
                         newPlayers[numNewPlayers] = ply;
                         newPlayers[numNewPlayers++]->ref();
@@ -265,7 +246,7 @@ void MapPage::updateData(const double dt)
                             player[j] = newPlayers[i];
                             player[j]->ref();
                             int type = 1;
-                            if (player[j]->isSide(oe::simulation::Player::RED)) type = 2;
+                            if (player[j]->isSide(oe::models::Player::RED)) type = 2;
                             playerIdx[j] = loader->addSymbol(type, "player");
                             if (player[j]->getName() != nullptr) {
                                 loader->updateSymbolText(playerIdx[j], "name", player[j]->getName()->getString());
@@ -289,10 +270,10 @@ void MapPage::updateData(const double dt)
     }
 
     // now send our lat / lon text data
-    send("line%d", UPDATE_VALUE2, latReadoutYPos, latReadoutYPosSD, MAX_READOUTS);
-    send("line%d", UPDATE_VALUE, latReadoutXPos, latReadoutXPosSD, MAX_READOUTS);
-    send("text%d", UPDATE_VALUE, lats, latsSD, MAX_READOUTS);
-    send("lonline%d", UPDATE_VALUE2, lonReadoutYPos, lonReadoutYPosSD, MAX_READOUTS);
-    send("lonline%d", UPDATE_VALUE, lonReadoutXPos, lonReadoutXPosSD, MAX_READOUTS);
-    send("lontext%d", UPDATE_VALUE, lons, lonsSD, MAX_READOUTS);
+    send("line%d", UPDATE_VALUE2, latReadoutYPos.data(), latReadoutYPosSD, MAX_READOUTS);
+    send("line%d", UPDATE_VALUE, latReadoutXPos.data(), latReadoutXPosSD, MAX_READOUTS);
+    send("text%d", UPDATE_VALUE, lats.data(), latsSD, MAX_READOUTS);
+    send("lonline%d", UPDATE_VALUE2, lonReadoutYPos.data(), lonReadoutYPosSD, MAX_READOUTS);
+    send("lonline%d", UPDATE_VALUE, lonReadoutXPos.data(), lonReadoutXPosSD, MAX_READOUTS);
+    send("lontext%d", UPDATE_VALUE, lons.data(), lonsSD, MAX_READOUTS);
 }

@@ -1,7 +1,7 @@
 
 #include "PlayerItem.hpp"
 #include "MapItem.hpp"
-#include "openeaagles/simulation/Player.hpp"
+#include "openeaagles/models/player/Player.hpp"
 
 #include <QPainter>
 #include <sstream>
@@ -95,16 +95,16 @@ bool PlayerItem::setDefaultImageSize(QSize x)
    return true;
 }
 
-void PlayerItem::refreshPlayer(const oe::simulation::Player* const ownship)
+void PlayerItem::refreshPlayer(const oe::models::Player* const ownship)
 {
    if (ownship != nullptr) {
       plyId = ownship->getID();
-      double oLat = 0.0;
-      double oLon = 0.0;
-      double tpLat = 0.0;
-      double tpLon = 0.0;
+      double oLat {};
+      double oLon {};
       ownship->getPositionLL(&oLat, &oLon);
       if (myMap != nullptr) {
+         double tpLat {};
+         double tpLon {};
          myMap->llToPixels(oLat, oLon, tpLat, tpLon);
          setPos(tpLon, tpLat);
       }

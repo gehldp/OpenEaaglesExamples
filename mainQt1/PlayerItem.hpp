@@ -5,7 +5,7 @@
 #include <QGraphicsItem>
 
 namespace  oe {
-   namespace simulation { class Player; }
+namespace models { class Player; }
 }
 
 class MapView;
@@ -18,7 +18,7 @@ public:
    ~PlayerItem();
 
    // update function
-   virtual void refreshPlayer(const oe::simulation::Player* const ownship);
+   virtual void refreshPlayer(const oe::models::Player* const ownship);
 
    // we can tell our PlayerItem to use a specific image file to draw
    virtual unsigned short getPlayerId() const;
@@ -30,13 +30,13 @@ public:
    void paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*);
 
 private:
-   unsigned short plyId;                         // ID of the player we are representing
-   MapItem* myMap;
-   MapView* view;
+   unsigned short plyId {};             // ID of the player we are representing
+   MapItem* myMap {};
+   MapView* view {};
 
-   QImage* defaultImage;                        // this will be our default image (if we define one)
-   QSize size;                                  // our default icon size
-   QString name;                                // player's name
+   QImage* defaultImage {};             // this will be our default image (if we define one)
+   QSize size;                          // our default icon size
+   QString name;                        // player's name
 };
 
 inline unsigned short PlayerItem::getPlayerId() const      { return plyId; }

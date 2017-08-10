@@ -1,11 +1,12 @@
 
 #include "TdElevPtr.hpp"
 #include "openeaagles/base/Number.hpp"
-#include "openeaagles/base/units/Angles.hpp"
+
+#include "openeaagles/base/units/angle_utils.hpp"
 
 using namespace oe;
 
-IMPLEMENT_EMPTY_SLOTTABLE_SUBCLASS(TdElevPtr,"TdElevPtr")
+IMPLEMENT_EMPTY_SLOTTABLE_SUBCLASS(TdElevPtr, "TdElevPtr")
 EMPTY_SERIALIZER(TdElevPtr)
 EMPTY_DELETEDATA(TdElevPtr)
 
@@ -16,7 +17,6 @@ END_EVENT_HANDLER()
 TdElevPtr::TdElevPtr()
 {
     STANDARD_CONSTRUCTOR()
-    elev = 0.0;
 }
 
 void TdElevPtr::copyData(const TdElevPtr& org, const bool)
@@ -35,7 +35,7 @@ double TdElevPtr::getElevation() const
 
 bool TdElevPtr::setElevation(const double v)
 {
-   elev = base::Angle::aepcdDeg(v);
+   elev = base::angle::aepcdDeg(v);
    return true;
 }
 

@@ -8,7 +8,7 @@
 
 #include "openeaagles/base/edl_parser.hpp"
 #include "openeaagles/base/Pair.hpp"
-#include "openeaagles/base/util/system.hpp"
+#include "openeaagles/base/util/system_utils.hpp"
 
 // factories
 #include "openeaagles/base/factory.hpp"
@@ -57,7 +57,7 @@ Endpoint* builder(const std::string& filename)
    }
 
    // do we have a base::Pair, if so, point to object in Pair, not Pair itself
-   oe::base::Pair* pair = dynamic_cast<oe::base::Pair*>(obj);
+   const auto pair = dynamic_cast<oe::base::Pair*>(obj);
    if (pair != nullptr) {
       obj = pair->object();
       obj->ref();
@@ -65,7 +65,7 @@ Endpoint* builder(const std::string& filename)
    }
 
    // try to cast to proper object, and check
-   Endpoint* endpoint = dynamic_cast<Endpoint*>(obj);
+   const auto endpoint = dynamic_cast<Endpoint*>(obj);
    if (endpoint == nullptr) {
       std::cerr << "Invalid configuration file!" << std::endl;
       std::exit(EXIT_FAILURE);
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
 
       double elapsedTime = timeNow - startTime;
       double nextFrameStart = simTime - elapsedTime;
-      int sleepTime = static_cast<int>(nextFrameStart*1000.0);
+      const auto sleepTime = static_cast<int>(nextFrameStart*1000.0);
 
       // wait for the next frame
       if (sleepTime > 0)

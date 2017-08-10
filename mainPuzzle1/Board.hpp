@@ -1,10 +1,10 @@
-//------------------------------------------------------------------------------
-// Puzzle board
-//------------------------------------------------------------------------------
+
 #ifndef __Board_H__
 #define __Board_H__
 
 #include "openeaagles/gui/glut/GlutDisplay.hpp"
+
+#include <array>
 
 namespace oe {
    namespace base { class PairStream; }
@@ -14,6 +14,10 @@ namespace oe {
 class Puzzle;
 class State;
 
+//------------------------------------------------------------------------------
+// Class: Board
+// Description: Puzzle board
+//------------------------------------------------------------------------------
 class Board : public oe::glut::GlutDisplay
 {
    DECLARE_SUBCLASS(Board, oe::glut::GlutDisplay)
@@ -41,26 +45,26 @@ protected:
 
 private:
    const oe::base::PairStream* templates;  // Graphical templates for the blocks
-   Puzzle*        puzzle;                  // the puzzle
-   double         startupTimer;            // Movement timer
+   Puzzle* puzzle {};                      // the puzzle
+   double startupTimer {};                 // Movement timer
 
    static const unsigned int MAX_STATES = 1000;  // Max states in solution path (i.e., moves)
-   const State*   path[MAX_STATES];              // Solution path
-   const State*   finalState;                    // Final state (puzzle solved if not equal zero)
-   unsigned int   nstates;                       // number of states in solution path
+   std::array<const State*, MAX_STATES> path {}; // Solution path
+   const State* finalState {};                   // Final state (puzzle solved if not equal zero)
+   unsigned int nstates {};                      // number of states in solution path
 
-   unsigned int   curPathState;              // Current state in the solution path
-   double         moveTimer;                 // Movement timer
-   bool           movingFlg;                 // Block is moving
+   unsigned int curPathState {};                 // Current state in the solution path
+   double       moveTimer {};                    // Movement timer
+   bool         movingFlg {};                    // Block is moving
 
    static const unsigned int MAX_BLOCKS = 30;
-   oe::graphics::Graphic*  blocks[MAX_BLOCKS];    // Graphics for each block
-   unsigned int       blockId[MAX_BLOCKS];        // Block reference IDs
-   double             xp[MAX_BLOCKS];             // Block X positions
-   double             yp[MAX_BLOCKS];             // Block Y positions
-   double             xd[MAX_BLOCKS];             // Block delta X positions
-   double             yd[MAX_BLOCKS];             // Block delta Y positions
-   unsigned int       nblocks;                    // number of blocks
+   std::array<oe::graphics::Graphic*, MAX_BLOCKS> blocks {};   // Graphics for each block
+   std::array<unsigned int, MAX_BLOCKS> blockId {};            // Block reference IDs
+   std::array<double, MAX_BLOCKS> xp {};                       // Block X positions
+   std::array<double, MAX_BLOCKS> yp {};                       // Block Y positions
+   std::array<double, MAX_BLOCKS> xd {};                       // Block delta X positions
+   std::array<double, MAX_BLOCKS> yd {};                       // Block delta Y positions
+   unsigned int nblocks {};                                    // number of blocks
 };
 
 #endif

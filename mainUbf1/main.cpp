@@ -7,7 +7,7 @@
 #include "openeaagles/base/edl_parser.hpp"
 #include "openeaagles/base/Pair.hpp"
 #include "openeaagles/base/Timers.hpp"
-#include "openeaagles/base/util/system.hpp"
+#include "openeaagles/base/util/system_utils.hpp"
 
 #include "factory.hpp"
 
@@ -39,7 +39,7 @@ oe::simulation::Station* builder(const std::string& filename)
    }
 
    // do we have a base::Pair, if so, point to object in Pair, not Pair itself
-   oe::base::Pair* pair = dynamic_cast<oe::base::Pair*>(obj);
+   const auto pair = dynamic_cast<oe::base::Pair*>(obj);
    if (pair != nullptr) {
       obj = pair->object();
       obj->ref();
@@ -47,7 +47,7 @@ oe::simulation::Station* builder(const std::string& filename)
    }
 
    // try to cast to proper object, and check
-   oe::simulation::Station* station = dynamic_cast<oe::simulation::Station*>(obj);
+   const auto station = dynamic_cast<oe::simulation::Station*>(obj);
    if (station == nullptr) {
       std::cerr << "Invalid configuration file!" << std::endl;
       std::exit(EXIT_FAILURE);
@@ -69,7 +69,7 @@ void updateDataCB(int msecs)
 
    // compute delta time
    static double time0 = time;   // N-1 Time
-   const double dt = static_cast<double>(time - time0);
+   const auto dt = static_cast<double>(time - time0);
    time0 = time;
 
    station->updateData(dt);
@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 
    // set timer for the background tasks
    const double dt = 1.0 / static_cast<double>(bgRate);
-   const int msecs = static_cast<int>(dt * 1000);
+   const auto msecs = static_cast<int>(dt * 1000);
 
    // ensure everything is reset
    station->updateData(dt);

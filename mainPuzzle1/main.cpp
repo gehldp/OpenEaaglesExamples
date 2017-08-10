@@ -7,7 +7,7 @@
 #include "openeaagles/base/edl_parser.hpp"
 #include "openeaagles/base/Pair.hpp"
 #include "openeaagles/base/Timers.hpp"
-#include "openeaagles/base/util/system.hpp"
+#include "openeaagles/base/util/system_utils.hpp"
 
 #include <iostream>
 #include <GL/glut.h>
@@ -20,11 +20,10 @@ const unsigned int frameRate = 20;
 
 Board* board = nullptr;
 
-//
 void timerCB(int)
 {
    const double dt0 = 1.0 / static_cast<double>(frameRate);
-   const unsigned int millis = static_cast<unsigned int>(dt0 * 1000);
+   const auto millis = static_cast<unsigned int>(dt0 * 1000);
    glutTimerFunc(millis, timerCB, 1);
 
    // current time
@@ -60,7 +59,7 @@ Board* builder(const std::string& filename)
    }
 
    // do we have a base::Pair, if so, point to object in Pair, not Pair itself
-   oe::base::Pair* pair = dynamic_cast<oe::base::Pair*>(obj);
+   const auto pair = dynamic_cast<oe::base::Pair*>(obj);
    if (pair != nullptr) {
       obj = pair->object();
       obj->ref();
@@ -68,7 +67,7 @@ Board* builder(const std::string& filename)
    }
 
    // try to cast to proper object, and check
-   Board* board = dynamic_cast<Board*>(obj);
+   const auto board = dynamic_cast<Board*>(obj);
    if (board == nullptr) {
       std::cerr << "Invalid configuration file!" << std::endl;
       std::exit(EXIT_FAILURE);
@@ -90,7 +89,7 @@ int main(int argc, char* argv[])
 
    // set timer
    const double dt = 1.0 / static_cast<double>(frameRate);
-   const unsigned int millis = static_cast<unsigned int>(dt * 1000);
+   const auto millis = static_cast<unsigned int>(dt * 1000);
    glutTimerFunc(millis, timerCB, 1);
 
    glutMainLoop();

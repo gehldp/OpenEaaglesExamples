@@ -1,7 +1,8 @@
 
 #include "MapItem.hpp"
-#include "openeaagles/base/units/Angles.hpp"
+
 #include "openeaagles/base/util/math_utils.hpp"
+#include "openeaagles/base/units/angle_utils.hpp"
 
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
@@ -16,18 +17,7 @@ MapItem::MapItem(MapView* v, QGraphicsItem* parent) : QGraphicsItem(parent)
    bRect.setTop(-5000);
    bRect.setHeight(10000);
 
-   refLat = 0.0;
-   refLon = 0.0;
-   range = 500.0;
-   pixNSRes = 1.0;
-   pixWERes = 1.0;
-   gridVis = false;
-
-   // non-equitorial map math
-   cosineLatReference = 1.0;
-   northUp = true;
    setHeading(0.0);
-   init = false;
 }
 
 QRectF MapItem::boundingRect() const
@@ -127,7 +117,7 @@ bool MapItem::setRefLat(const double lat)
    // nothing more than 70 degrees north or south will suffice
    if (lat <= 90 && lat >= -90) {
       refLat = lat;
-      cosineLatReference = std::cos(oe::base::Angle::D2RCC * refLat);
+      cosineLatReference = std::cos(oe::base::angle::D2RCC * refLat);
       ok = true;
    }
    return ok;
@@ -290,7 +280,7 @@ void MapItem::drawGrid(QPainter* painter)
 // ---
 void MapItem::setHeading(const double x)
 {
-   const double hdgRad = oe::base::Angle::D2RCC * x;
+   const double hdgRad = oe::base::angle::D2RCC * x;
    heading = x;
    headingSin = std::sin(hdgRad);
    headingCos = std::cos(hdgRad);

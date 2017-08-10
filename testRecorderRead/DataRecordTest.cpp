@@ -6,6 +6,7 @@
 #include "openeaagles/recorder/DataRecordHandle.hpp"
 
 #include "xrecorder/protobuf/DataRecord.pb.h"
+#include <iostream>
 
 using namespace oe;
 
@@ -17,7 +18,6 @@ BEGIN_SLOTTABLE(DataRecordTest)
    "outputHandler",
 END_SLOTTABLE(DataRecordTest)
 
-// Map slot table to handles
 BEGIN_SLOT_MAP(DataRecordTest)
    ON_SLOT(1, setSlotInputHandler, oe::recorder::InputHandler)
    ON_SLOT(2, setSlotOutputHandler, oe::recorder::OutputHandler)
@@ -26,19 +26,11 @@ END_SLOT_MAP()
 DataRecordTest::DataRecordTest()
 {
    STANDARD_CONSTRUCTOR()
-   initData();
 }
 
-void DataRecordTest::initData()
-{
-   inputHandler = nullptr;
-   outputHandler = nullptr;
-}
-
-void DataRecordTest::copyData(const DataRecordTest& org, const bool cc)
+void DataRecordTest::copyData(const DataRecordTest& org, const bool)
 {
    BaseClass::copyData(org);
-   if (cc) initData();
 
    {  // Clone input handler
       oe::recorder::InputHandler* clone = nullptr;
@@ -98,7 +90,3 @@ bool DataRecordTest::setSlotOutputHandler(oe::recorder::OutputHandler* const msg
    return true;
 }
 
-base::Object* DataRecordTest::getSlotByIndex(const int si)
-{
-    return BaseClass::getSlotByIndex(si);
-}

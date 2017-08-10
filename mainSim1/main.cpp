@@ -4,15 +4,15 @@
 #include "openeaagles/base/Pair.hpp"
 #include "openeaagles/base/Integer.hpp"
 #include "openeaagles/base/units/Angles.hpp"
-#include "openeaagles/otw/OtwPC.hpp"
-#include "openeaagles/base/util/system.hpp"
+#include "openeaagles/base/util/system_utils.hpp"
 
 // factories
 #include "../shared/xzmq/factory.hpp"
 #include "openeaagles/simulation/factory.hpp"
 #include "openeaagles/models/factory.hpp"
-#include "openeaagles/networks/dis/factory.hpp"
+#include "openeaagles/interop/dis/factory.hpp"
 #include "openeaagles/otw/factory.hpp"
+#include "openeaagles/terrain/factory.hpp"
 #include "openeaagles/base/factory.hpp"
 
 #include <string>
@@ -24,18 +24,16 @@ const unsigned int bgRate = 10;
 // class factory
 oe::base::Object* factory(const std::string& name)
 {
-   oe::base::Object* obj = nullptr;
-
    // example libraries
-   if (obj == nullptr) obj = oe::xzmq::factory(name);
+   oe::base::Object* obj = oe::xzmq::factory(name);
 
    // framework libraries
    if (obj == nullptr) obj = oe::otw::factory(name);
    if (obj == nullptr) obj = oe::simulation::factory(name);
    if (obj == nullptr) obj = oe::models::factory(name);
+   if (obj == nullptr) obj = oe::terrain::factory(name);
    if (obj == nullptr) obj = oe::dis::factory(name);
    if (obj == nullptr) obj = oe::base::factory(name);
-
    return obj;
 }
 
@@ -57,7 +55,7 @@ oe::simulation::Station* builder(const std::string& filename)
    }
 
    // do we have a base::Pair, if so, point to object in Pair, not Pair itself
-   oe::base::Pair* pair = dynamic_cast<oe::base::Pair*>(obj);
+   const auto pair = dynamic_cast<oe::base::Pair*>(obj);
    if (pair != nullptr) {
       obj = pair->object();
       obj->ref();
@@ -65,7 +63,7 @@ oe::simulation::Station* builder(const std::string& filename)
    }
 
    // try to cast to proper object, and check
-   oe::simulation::Station* station = dynamic_cast<oe::simulation::Station*>(obj);
+   const auto station = dynamic_cast<oe::simulation::Station*>(obj);
    if (station == nullptr) {
       std::cerr << "Invalid configuration file!" << std::endl;
       std::exit(EXIT_FAILURE);
@@ -114,7 +112,7 @@ int main(int argc, char* argv[])
       const double timeNow = oe::base::getComputerTime();  // time now
       const double elapsedTime = timeNow - startTime;
       const double nextFrameStart = simTime - elapsedTime;
-      const int sleepTime = static_cast<int>(nextFrameStart*1000.0);
+      const auto sleepTime = static_cast<int>(nextFrameStart*1000.0);
 
       // wait for the next frame
       if (sleepTime > 0)

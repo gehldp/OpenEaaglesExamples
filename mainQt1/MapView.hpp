@@ -13,7 +13,7 @@ class MapView : public QGraphicsView
    Q_OBJECT
 
 public:
-   MapView(QWidget* parent = nullptr);
+   explicit MapView(QWidget* parent = nullptr);
    ~MapView();
 
 public slots:
@@ -25,8 +25,8 @@ protected:
 
 private:
    void clearPlayers();
-   Station* stn;                 // holds a station for reference
-   MapItem* map;                 // our map
+   Station* stn {};              // holds a station for reference
+   MapItem* map {};              // our map
    QList<PlayerItem*> players;   // our "graphical" players
 };
 

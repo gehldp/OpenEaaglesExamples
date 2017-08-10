@@ -2,32 +2,33 @@
 #include "MapPage.hpp"
 #include "TestStation.hpp"
 #include "MapDisplay.hpp"
-#include "openeaagles/simulation/Player.hpp"
-#include "openeaagles/simulation/Autopilot.hpp"
-#include "openeaagles/simulation/AirVehicle.hpp"
 
-#include "openeaagles/simulation/Navigation.hpp"
-#include "openeaagles/simulation/Route.hpp"
-#include "openeaagles/simulation/Steerpoint.hpp"
-#include "openeaagles/simulation/Simulation.hpp"
+#include "openeaagles/models/player/AirVehicle.hpp"
+#include "openeaagles/models/player/Player.hpp"
+#include "openeaagles/models/system/Autopilot.hpp"
+#include "openeaagles/models/navigation/Navigation.hpp"
+#include "openeaagles/models/navigation/Route.hpp"
+#include "openeaagles/models/navigation/Steerpoint.hpp"
+
+#include "openeaagles/models/WorldModel.hpp"
+
 #include "openeaagles/graphics/SymbolLoader.hpp"
-#include "openeaagles/base/Pair.hpp"
-#include "openeaagles/base/PairStream.hpp"
-#include "openeaagles/models/dynamics/LaeroModel.hpp"
 #include "openeaagles/graphics/Display.hpp"
 #include "openeaagles/graphics/Shapes.hpp"
 
-#include "openeaagles/base/units/Angles.hpp"
-#include "openeaagles/base/units/Distances.hpp"
-#include "openeaagles/base/units/Times.hpp"
+#include "openeaagles/models/dynamics/LaeroModel.hpp"
 
+#include "openeaagles/base/Pair.hpp"
+#include "openeaagles/base/PairStream.hpp"
+
+#include "openeaagles/base/units/time_utils.hpp"
+
+#include <array>
 #include <GL/glut.h>
 
 namespace oe {
-   namespace graphics { class OcclusionArc; }
+namespace graphics { class OcclusionArc; }
 }
-
-using namespace oe;
 
 IMPLEMENT_SUBCLASS(MapPage, "TestMapPage")
 EMPTY_SLOTTABLE(MapPage)
@@ -36,34 +37,12 @@ EMPTY_SERIALIZER(MapPage)
 MapPage::MapPage()
 {
     STANDARD_CONSTRUCTOR()
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        player[i] = nullptr;
-        playerIdx[i] = -1;
-    }
-    pStn = nullptr;
-    loader = nullptr;
 
-    for (int i = 0; i < MAX_READOUTS; i++) {
-        latsSD[i].empty();
-        lats[i] = 0;
-        latReadoutXPosSD[i].empty();
-        latReadoutXPos[i] = 0.0;
-        latReadoutYPosSD[i].empty();
-        latReadoutYPos[i] = 0.0;
-        lonsSD[i].empty();
-        lons[i] = 0;
-        lonReadoutXPosSD[i].empty();
-        lonReadoutXPos[i] = 0.0;
-        lonReadoutYPosSD[i].empty();
-        lonReadoutYPos[i] = 0.0;
-    }
-
-    routeLoaded = false;
+    playerIdx.fill(-1);
 }
 
 void MapPage::copyData(const MapPage& org, const bool)
 {
-    // copy base class stuff first
     BaseClass::copyData(org);
 
     // regardless of copy, we will create all new symbols
@@ -154,11 +133,11 @@ void MapPage::drawSemiCircle(const double startAngle, const double radius)
 
 //void MapPage::drawHoldingPattern(const double aLat, const double aLon, const double ibCrs, const double tas)
 //{
-   //if (pStn != 0) {
+   //if (pStn != nullptr) {
    //   simulation::Player* pPlr  = pStn->getOwnship();
-   //   if (pPlr != 0) {
+   //   if (pPlr != nullptr) {
    //      Vehicle::LaeroModel* pRac = (Vehicle::LaeroModel*) pPlr->getDynamicsModel();
-   //      if (pRac != 0) {
+   //      if (pRac != nullptr) {
 
    //         pRac->setAnchorLat(aLat);
    //         pRac->setAnchorLon(aLon);
@@ -175,9 +154,9 @@ void MapPage::drawSemiCircle(const double startAngle, const double radius)
 void MapPage::drawHoldingPattern()
 {
    if (pStn != nullptr) {
-      simulation::Player* pPlr  = pStn->getOwnship();
+      const auto pPlr  = dynamic_cast<oe::models::Player*>(pStn->getOwnship());
       if (pPlr != nullptr) {
-         simulation::Autopilot* pRac = static_cast<simulation::Autopilot*>(pPlr->getPilot());
+         const auto pRac = static_cast<oe::models::Autopilot*>(pPlr->getPilot());
          if (pRac != nullptr) {
 
          //---------------------------------------------------------------------------
@@ -195,17 +174,17 @@ void MapPage::drawHoldingPattern()
 //            double refLat = getReferenceLatDeg();
 //            double refLon = getReferenceLonDeg();
 
-            const double omegaDps = 3.0;                                  //dps
-            const double omegaRps = omegaDps * base::Angle::D2RCC;       //rps
-            const double rocNM = (osVel / base::Time::H2S) / omegaRps;   //nm
+            const double omegaDps = 3.0;                                     //dps
+            const double omegaRps = omegaDps * oe::base::angle::D2RCC;       //rps
+            const double rocNM = (osVel / oe::base::time::H2S) / omegaRps;   //nm
             //double obTimeMin = 2.0;                                     //min
-            //double obTimeSec = obTimeMin * base::Time::M2S;            //sec
+            //double obTimeSec = obTimeMin * base::time::M2S;            //sec
 
-            //double obDistNM = (osVel / base::Time::H2S) * obTimeSec;   //nm
+            //double obDistNM = (osVel / base::time::H2S) * obTimeSec;   //nm
 
             double obDistNM = 0;
             if (pRac->isLoiterTimeBased()) {
-               obDistNM = (osVel / base::Time::H2S) * pRac->getLoiterTime();   //nm
+               obDistNM = (osVel / oe::base::time::H2S) * pRac->getLoiterTime();   //nm
             }
             else {
                obDistNM = pRac->getLoiterPatternLengthNM();
@@ -262,17 +241,17 @@ void MapPage::drawFunc()
       // get data pointers
       //-------------------------------------------------------
    if (pStn != nullptr) {
-      simulation::Player* pPlr  = pStn->getOwnship();
+      const auto pPlr  = dynamic_cast<oe::models::Player*>(pStn->getOwnship());
       if (pPlr != nullptr) {
 
          // get the autopilot
-         simulation::Autopilot* ap = static_cast<simulation::Autopilot*>(pPlr->getPilot());
+         const auto ap = static_cast<oe::models::Autopilot*>(pPlr->getPilot());
          if (ap != nullptr && ap->isLoiterModeOn()) drawHoldingPattern();
 
          //---------------------------------------------------------------------------
          // get our viewport
          //---------------------------------------------------------------------------
-         MapDisplay* pDsp = static_cast<MapDisplay*>(getDisplay());
+         const auto pDsp = static_cast<MapDisplay*>(getDisplay());
          //graphics::Display* pDsp = (graphics::Display*) getDisplay();
 
          if (pDsp != nullptr) {
@@ -301,8 +280,8 @@ void MapPage::drawFunc()
             glPushMatrix();
             glBegin(GL_LINES);
                int latIdx = 0;
-               int startLat = base::nint(static_cast<double>(southernLat) - 1);
-               const int endLat = base::nint(static_cast<double>(northernLat) + 1);
+               int startLat = oe::base::nint(static_cast<double>(southernLat) - 1);
+               const int endLat = oe::base::nint(static_cast<double>(northernLat) + 1);
                while (startLat < endLat) {
                   GLfloat refLatDist = static_cast<GLfloat>(refLat - startLat);
                   if (latIdx < MAX_READOUTS) {
@@ -326,8 +305,8 @@ void MapPage::drawFunc()
             glPushMatrix();
             glBegin(GL_LINES);
                int lonIdx = 0;
-               int startLon = base::nint(static_cast<double>(westernLon) - 1);
-               const int endLon = base::nint(static_cast<double>(easternLon) + 1);
+               int startLon = oe::base::nint(static_cast<double>(westernLon) - 1);
+               const int endLon = oe::base::nint(static_cast<double>(easternLon) + 1);
                while (startLon < endLon) {
                   GLfloat refLonDist = static_cast<GLfloat>(refLon - startLon);
                   if (lonIdx < MAX_READOUTS) {
@@ -361,21 +340,21 @@ void MapPage::updateData(const double dt)
 
     // get our pointers
     if (loader == nullptr) {
-        base::Pair* pair = findByName("playerLoader");
+        oe::base::Pair* pair = findByName("playerLoader");
         if (pair != nullptr) {
-            loader = dynamic_cast<graphics::SymbolLoader*>(pair->object());
+            loader = dynamic_cast<oe::graphics::SymbolLoader*>(pair->object());
             if (loader != nullptr) loader->ref();
         }
     }
 
     if (pStn == nullptr) {
-        graphics::Display* pDsp = getDisplay();
+        oe::graphics::Display* pDsp = getDisplay();
         if (pDsp != nullptr) {
             pStn = static_cast<TestStation*>(pDsp->findContainerByType(typeid(TestStation)));
             if (pStn != nullptr) {
                 pStn->ref();
                 // set our reference lat / lon initially
-                simulation::Simulation* sim = pStn->getSimulation();
+                const auto sim = dynamic_cast<oe::models::WorldModel*>(pStn->getSimulation());
                 if (sim != nullptr) {
                     setReferenceLatDeg(sim->getRefLatitude());
                     setReferenceLonDeg(sim->getRefLongitude());
@@ -386,18 +365,18 @@ void MapPage::updateData(const double dt)
 
    // go through one time and add our symbols for the route
    if (!routeLoaded && pStn != nullptr) {
-      base::Pair* pair = findByName("routeLoader");
+      oe::base::Pair* pair = findByName("routeLoader");
       if (pair != nullptr) {
-         graphics::SymbolLoader* routeLoader = dynamic_cast<graphics::SymbolLoader*>(pair->object());
+         const auto routeLoader = dynamic_cast<oe::graphics::SymbolLoader*>(pair->object());
          if (routeLoader != nullptr) {
             // get our player's route
-            simulation::Player* ply = pStn->getOwnship();
+            const auto ply = dynamic_cast<oe::models::Player*>(pStn->getOwnship());
             if (ply != nullptr) {
-               simulation::Navigation* nav = ply->getNavigation();
+               oe::models::Navigation* nav = ply->getNavigation();
                if (nav != nullptr) {
-                  simulation::Route* rte = nav->getPriRoute();
+                  oe::models::Route* rte = nav->getPriRoute();
                   if (rte != nullptr) {
-                     base::safe_ptr<simulation::Steerpoint> stpts[10];
+                     oe::base::safe_ptr<oe::models::Steerpoint> stpts[10];
                      unsigned int numStpts = rte->getAllSteerpoints(stpts, 10);
                      for (unsigned int i = 0; i < numStpts; i++) {
                         if (stpts[i] != nullptr) {
@@ -418,17 +397,17 @@ void MapPage::updateData(const double dt)
 
     // let's update our players
     if (loader != nullptr && pStn != nullptr) {
-        base::PairStream* stream = pStn->getPlayers();
+        oe::base::PairStream* stream = pStn->getPlayers();
         if (stream != nullptr) {
             // create our new player list
-            simulation::Player* newPlayers[MAX_PLAYERS];
+            oe::models::Player* newPlayers[MAX_PLAYERS];
             int numNewPlayers = 0;
             // go through all of our non-ownship players and populate our new list
-            base::List::Item* item = stream->getFirstItem();
+            oe::base::List::Item* item = stream->getFirstItem();
             while (item != nullptr && numNewPlayers < MAX_PLAYERS) {
-                base::Pair* pair = static_cast<base::Pair*>(item->getValue());
+                const auto pair = static_cast<oe::base::Pair*>(item->getValue());
                 if (pair != nullptr) {
-                    simulation::Player* pPlr = dynamic_cast<simulation::Player*>(pair->object());
+                    const auto pPlr = dynamic_cast<oe::models::Player*>(pair->object());
                     if (pPlr != nullptr) {
                         newPlayers[numNewPlayers] = pPlr;
                         newPlayers[numNewPlayers++]->ref();
@@ -474,7 +453,7 @@ void MapPage::updateData(const double dt)
                             player[j] = newPlayers[i];
                             player[j]->ref();
                             int type = 1;
-                            if (player[j]->isSide(simulation::Player::RED)) type = 2;
+                            if (player[j]->isSide(oe::models::Player::RED)) type = 2;
                             playerIdx[j] = loader->addSymbol(type, "");              //<LDB - "player"
                             if (player[j]->getName() != nullptr) {
                                 loader->updateSymbolText(playerIdx[j], "name", player[j]->getName()->getString());
@@ -498,11 +477,11 @@ void MapPage::updateData(const double dt)
     }
 
     // now send our lat / lon text data
-    send("lattext%d", UPDATE_VALUE,  lats,           latsSD,           MAX_READOUTS);
-    send("latline%d", UPDATE_VALUE,  latReadoutXPos, latReadoutXPosSD, MAX_READOUTS);
-    send("latline%d", UPDATE_VALUE2, latReadoutYPos, latReadoutYPosSD, MAX_READOUTS);
+    send("lattext%d", UPDATE_VALUE,  lats.data(),           latsSD,           MAX_READOUTS);
+    send("latline%d", UPDATE_VALUE,  latReadoutXPos.data(), latReadoutXPosSD, MAX_READOUTS);
+    send("latline%d", UPDATE_VALUE2, latReadoutYPos.data(), latReadoutYPosSD, MAX_READOUTS);
 
-    send("lontext%d", UPDATE_VALUE,  lons,           lonsSD,           MAX_READOUTS);
-    send("lonline%d", UPDATE_VALUE,  lonReadoutXPos, lonReadoutXPosSD, MAX_READOUTS);
-    send("lonline%d", UPDATE_VALUE2, lonReadoutYPos, lonReadoutYPosSD, MAX_READOUTS);
+    send("lontext%d", UPDATE_VALUE,  lons.data(),           lonsSD,           MAX_READOUTS);
+    send("lonline%d", UPDATE_VALUE,  lonReadoutXPos.data(), lonReadoutXPosSD, MAX_READOUTS);
+    send("lonline%d", UPDATE_VALUE2, lonReadoutYPos.data(), lonReadoutYPosSD, MAX_READOUTS);
 }

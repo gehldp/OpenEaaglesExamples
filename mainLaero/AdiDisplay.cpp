@@ -3,43 +3,20 @@
 
 #include "TestStation.hpp"
 
-#include "openeaagles/simulation/AirVehicle.hpp"
-#include "openeaagles/base/osg/Vec3"
-#include "openeaagles/base/units/Angles.hpp"
+#include "openeaagles/models/player/AirVehicle.hpp"
+
+#include "openeaagles/base/osg/Vec3d"
+
 #include "openeaagles/base/units/Distances.hpp"
 #include "openeaagles/base/units/Times.hpp"
-
-using namespace oe;
 
 IMPLEMENT_EMPTY_SLOTTABLE_SUBCLASS(AdiDisplay, "AdiDisplay")
 EMPTY_SERIALIZER(AdiDisplay)
 EMPTY_DELETEDATA(AdiDisplay)
 
-AdiDisplay::AdiDisplay() : myStation(nullptr)
+AdiDisplay::AdiDisplay()
 {
    STANDARD_CONSTRUCTOR()
-
-   psiRO    = 0.0;
-   thtRO    = 0.0;
-   phiRO    = 0.0;
-   velRO    = 0.0;
-   altRO    = 0.0;
-   pRO      = 0.0;
-   qRO      = 0.0;
-   rRO      = 0.0;
-   bankADI  = 0.0;
-   pitchADI = 0.0;
-
-   psiRO_SD.empty();
-   thtRO_SD.empty();
-   phiRO_SD.empty();
-   velRO_SD.empty();
-   altRO_SD.empty();
-   pRO_SD.empty();
-   qRO_SD.empty();
-   rRO_SD.empty();
-   bankADI_SD.empty();
-   pitchADI_SD.empty();
 }
 
 void AdiDisplay::copyData(const AdiDisplay& org, const bool)
@@ -65,10 +42,10 @@ void AdiDisplay::updateData(const double dt)
    // Update base classes stuff
    BaseClass::updateData(dt);
 
-   oe::osg::Vec3d av;
+   oe::base::Vec3d av;
 
    // get access pointer to ownship
-   simulation::Aircraft* pA = getOwnship();
+   oe::models::Aircraft* pA = getOwnship();
    if (pA != nullptr) {
       psiRO = pA->getHeadingD();
       thtRO = pA->getPitchD();
@@ -79,9 +56,9 @@ void AdiDisplay::updateData(const double dt)
 
       av = pA->getAngularVelocities();
 
-      pRO   = av[0] * base::Angle::R2DCC;
-      qRO   = av[1] * base::Angle::R2DCC;
-      rRO   = av[2] * base::Angle::R2DCC;
+      pRO   = av[0] * oe::base::angle::R2DCC;
+      qRO   = av[1] * oe::base::angle::R2DCC;
+      rRO   = av[2] * oe::base::angle::R2DCC;
 
       pitchADI = pA->getPitchD();
       bankADI  = pA->getRollD();
@@ -104,10 +81,10 @@ void AdiDisplay::updateData(const double dt)
    //send("pitchangle",   UPDATE_INSTRUMENTS, pitch,    pitchSD);
 }
 
-simulation::Station* AdiDisplay::getStation()
+oe::simulation::Station* AdiDisplay::getStation()
 {
    if (myStation == nullptr) {
-      simulation::Station* s = dynamic_cast<simulation::Station*>( findContainerByType(typeid(simulation::Station)) );
+      const auto s = dynamic_cast<oe::simulation::Station*>( findContainerByType(typeid(oe::simulation::Station)) );
       if (s != nullptr) {
          myStation = s;
       }
@@ -115,13 +92,12 @@ simulation::Station* AdiDisplay::getStation()
    return myStation;
 }
 
-simulation::Aircraft* AdiDisplay::getOwnship()
+oe::models::Aircraft* AdiDisplay::getOwnship()
 {
-   simulation::Aircraft* pA = nullptr;
-   simulation::Station* sta = getStation();
+   oe::models::Aircraft* pA = nullptr;
+   oe::simulation::Station* sta = getStation();
    if (sta != nullptr) {
-      pA = dynamic_cast<simulation::Aircraft*>(sta->getOwnship());
-
+      pA = dynamic_cast<oe::models::Aircraft*>(sta->getOwnship());
       //const unsigned int ffrate = 5;    //LDB
       //sta->setFastForwardRate(ffrate);  //LDB
    }

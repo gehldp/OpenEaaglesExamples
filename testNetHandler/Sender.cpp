@@ -1,17 +1,12 @@
 
 #include "Sender.hpp"
 
-#include "openeaagles/base/NetHandler.hpp"
 #include "openeaagles/base/Number.hpp"
-#include "openeaagles/base/util/system.hpp"
+#include "openeaagles/base/util/system_utils.hpp"
 
 #include <cstdio>
 #include <cstdlib>
-
-// disable all deprecation warnings for now, until we fix
-#if(_MSC_VER>=1400)   // VC8+
-# pragma warning(disable: 4996)
-#endif
+#include <iostream>
 
 using namespace oe;
 
@@ -23,9 +18,6 @@ EMPTY_DELETEDATA(Sender)
 Sender::Sender()
 {
     STANDARD_CONSTRUCTOR()
-
-    msgCounter = 0;
-    recvMode = false;
 }
 
 void Sender::copyData(const Sender& org, const bool)
@@ -68,7 +60,7 @@ void Sender::updateData(const double dt)
         else {
             char buffer[MAX_SIZE];
             sprintf(buffer, "Message(%d)", ++msgCounter);
-            unsigned int n = static_cast<unsigned int>(std::strlen(buffer));
+            const auto n = static_cast<unsigned int>(std::strlen(buffer));
             base::msleep(1000);
             bool ok = sendData(buffer, n);
             if (ok) {

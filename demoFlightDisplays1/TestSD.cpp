@@ -4,14 +4,9 @@
 #include "TestSD.hpp"
 #include "openeaagles/base/PairStream.hpp"
 #include "openeaagles/base/Pair.hpp"
-#include "openeaagles/base/units/Angles.hpp"
+#include "openeaagles/base/units/angle_utils.hpp"
 #include "SituationalDisplay.hpp"
 #include "openeaagles/graphics/SymbolLoader.hpp"
-
-// disable all deprecation warnings for now, until we fix
-#if(_MSC_VER>=1400)   // VC8+
-# pragma warning(disable: 4996)
-#endif
 
 using namespace oe;
 
@@ -22,7 +17,6 @@ IMPLEMENT_EMPTY_SLOTTABLE_SUBCLASS(TestSD, "TestSD")
 EMPTY_SERIALIZER(TestSD)
 EMPTY_DELETEDATA(TestSD)
 
-// Test event handler
 BEGIN_EVENT_HANDLER(TestSD)
     ON_EVENT('r', onToggleRange)
 END_EVENT_HANDLER()
@@ -42,28 +36,13 @@ static const char* apNames[TestSD::MAX_AIRPORTS] = {
 TestSD::TestSD()
 {
     STANDARD_CONSTRUCTOR()
-    heading = 0.0;
-    headingRate = static_cast<double>(0.2f * base::Angle::R2DCC);
-    bearing = 0.0;
-    bearingRate = static_cast<double>(0.4f * base::Angle::R2DCC);
-    range = 80.0;
-    // navaid bearings
-    nav1Brg = 0.0;
-    nav1BrgRate = 4.0;
-    nav2Brg = 0.0;
-    nav2BrgRate = 6.0;
-    // orbit range
-    orbRange = 5.0;
-    // heading
-    hdgBug = 0.0;
-    hdgBugRate = 2.0;
 
     // initialize our air tracks to test data
     {
-        double trkX = 0.0;
-        double trkY = 0.0;
-        double hdg = 0.0;
-        int myType = 1;
+        double trkX {};
+        double trkY {};
+        double hdg {};
+        int myType {1};
         for (int i = 0; i < MAX_TRACKS; i++) {
             myTracks[i].x = trkX;
             myTracks[i].y = trkY;
@@ -73,7 +52,7 @@ TestSD::TestSD()
             trkX += 6.0;
             trkY -= 6.0;
             hdg += 45.0f;
-            if (hdg > 360.0f) hdg -= 360.0f;
+            if (hdg > 360.0) hdg -= 360.0;
             if (myType < 4) myType++;
             else myType = 1;
         }
@@ -82,9 +61,9 @@ TestSD::TestSD()
 
     // initialize our airports to test data
     {
-        double apLat = refLat + 0.1;
-        double apLon = refLon;
-        int myType = 1;
+        double apLat {refLat + 0.1};
+        double apLon {refLon};
+        int myType {1};
         for (int i = 0; i < MAX_NAV_AIDS; i++) {
             myAP[i].x = apLat;
             myAP[i].y = apLon;
@@ -104,9 +83,9 @@ TestSD::TestSD()
 
     // initialize our navaids to test data
     {
-        double navLat = refLat;
-        double navLon = refLon + 0.1;
-        int myType = 1;
+        double navLat {refLat};
+        double navLon {refLon + 0.1};
+        int myType {1};
         for (int i = 0; i < MAX_NAV_AIDS; i++) {
             myNA[i].x = navLat;
             myNA[i].y = navLon;
@@ -149,43 +128,42 @@ void TestSD::copyData(const TestSD& org, const bool)
 
 void TestSD::updateData(const double dt)
 {
-    // update our BaseClass
     BaseClass::updateData(dt);
 
     heading += (headingRate * dt);
-    if (heading > 360 || heading < 0) headingRate = -headingRate;
+    if (heading > 360.0 || heading < 0.0) headingRate = -headingRate;
     bearing += (bearingRate * dt);
-    if (bearing > 360 || bearing < 0) bearingRate = -bearingRate;
+    if (bearing > 360.0 || bearing < 0.0) bearingRate = -bearingRate;
 
 
     nav1Brg += nav1BrgRate * dt;
-    if (nav1Brg > 360) {
-        nav1Brg = 360;
+    if (nav1Brg > 360.0) {
+        nav1Brg = 360.0;
         nav1BrgRate = -nav1BrgRate;
     }
-    if (nav1Brg < 0) {
-        nav1Brg = 0;
+    if (nav1Brg < 0.0) {
+        nav1Brg = 0.0;
         nav1BrgRate = -nav1BrgRate;
     }
 
     nav2Brg += nav2BrgRate * dt;
-    if (nav2Brg > 360) {
-        nav2Brg = 360;
+    if (nav2Brg > 360.0) {
+        nav2Brg = 360.0;
         nav2BrgRate = -nav2BrgRate;
     }
-    if (nav2Brg < 0) {
-        nav2Brg = 0;
+    if (nav2Brg < 0.0) {
+        nav2Brg = 0.0;
         nav2BrgRate = -nav2BrgRate;
     }
 
     // heading bug
     hdgBug += hdgBugRate *dt;
-    if (hdgBug > 360) {
-        hdgBug = 360;
+    if (hdgBug > 360.0) {
+        hdgBug = 360.0;
         hdgBugRate = -hdgBugRate;
     }
-    if (hdgBug < 0) {
-        hdgBug = 0;
+    if (hdgBug < 0.0) {
+        hdgBug = 0.0;
         hdgBugRate = -hdgBugRate;
     }
 
@@ -195,7 +173,7 @@ void TestSD::updateData(const double dt)
     {
     base::Pair* pair = findByType(typeid(SituationalDisplay));
         if (pair != nullptr) {
-            SituationalDisplay* p = static_cast<SituationalDisplay*>(pair->object());
+            const auto p = static_cast<SituationalDisplay*>(pair->object());
             if (p != nullptr) {
                 p->setHeading(heading);
                 p->setRange(range);
@@ -214,7 +192,7 @@ void TestSD::updateData(const double dt)
         base::Pair* pair = findByName("airTracks");
         if (pair != nullptr) {
             pair->ref();
-            graphics::SymbolLoader* myLoader = dynamic_cast<graphics::SymbolLoader*>(pair->object());
+            const auto myLoader = dynamic_cast<graphics::SymbolLoader*>(pair->object());
             if (myLoader != nullptr) {
                 for (int i = 0; i < MAX_TRACKS; i++) {
                     int idx = myLoader->addSymbol(myTracks[i].type, myTracks[i].id);
@@ -233,7 +211,7 @@ void TestSD::updateData(const double dt)
         base::Pair* pair = findByName("airports");
         if (pair != nullptr) {
             pair->ref();
-            graphics::SymbolLoader* myLoader = dynamic_cast<graphics::SymbolLoader*>(pair->object());
+            const auto myLoader = dynamic_cast<graphics::SymbolLoader*>(pair->object());
             if (myLoader != nullptr) {
                 for (int i = 0; i < MAX_AIRPORTS; i++) {
                     int idx = myLoader->addSymbol(myAP[i].type, myAP[i].id);
@@ -251,7 +229,7 @@ void TestSD::updateData(const double dt)
         base::Pair* pair = findByName("navaids");
         if (pair != nullptr) {
             pair->ref();
-            graphics::SymbolLoader* myLoader = dynamic_cast<graphics::SymbolLoader*>(pair->object());
+            const auto myLoader = dynamic_cast<graphics::SymbolLoader*>(pair->object());
             if (myLoader != nullptr) {
                 for (int i = 0; i < MAX_NAV_AIDS; i++) {
                     int idx = myLoader->addSymbol(myNA[i].type, myNA[i].id);

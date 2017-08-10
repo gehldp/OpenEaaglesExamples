@@ -1,12 +1,12 @@
 
 #include "TdElevPtr.hpp"
 #include "openeaagles/base/Number.hpp"
-#include "openeaagles/base/units/Angles.hpp"
+#include "openeaagles/base/units/angle_utils.hpp"
 
 namespace oe {
 namespace xpanel {
 
-IMPLEMENT_EMPTY_SLOTTABLE_SUBCLASS(TdElevPtr,"TdElevPtr")
+IMPLEMENT_EMPTY_SLOTTABLE_SUBCLASS(TdElevPtr, "TdElevPtr")
 EMPTY_SERIALIZER(TdElevPtr)
 EMPTY_DELETEDATA(TdElevPtr)
 
@@ -14,19 +14,11 @@ BEGIN_EVENT_HANDLER(TdElevPtr)
     ON_EVENT_OBJ(UPDATE_VALUE, onUpdateValue, base::Number)
 END_EVENT_HANDLER()
 
-
-//------------------------------------------------------------------------------
-// Class support functions
-//------------------------------------------------------------------------------
-
-// Constructor(s)
 TdElevPtr::TdElevPtr()
 {
     STANDARD_CONSTRUCTOR()
-    elev = 0.0;
 }
 
-// copy member data
 void TdElevPtr::copyData(const TdElevPtr& org, const bool)
 {
     BaseClass::copyData(org);
@@ -43,7 +35,7 @@ double TdElevPtr::getElevation() const
 
 bool TdElevPtr::setElevation(const double v)
 {
-   elev = base::Angle::aepcdDeg(v);
+   elev = base::angle::aepcdDeg(v);
    return true;
 }
 

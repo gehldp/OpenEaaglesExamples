@@ -5,9 +5,10 @@
 #include "openeaagles/gui/glut/GlutDisplay.hpp"
 
 namespace oe {
-   namespace simulation { class Missile; class Player; class Simulation; class Station; }
-   namespace graphics { class SymbolLoader; }
-   namespace xpanel { class DspRadar; class DspRwr; }
+namespace simulation { class Simulation; class Station; }
+namespace models { class Missile; class Player; }
+namespace graphics { class SymbolLoader; }
+namespace xpanel { class DspRadar; class DspRwr; }
 }
 
 //------------------------------------------------------------------------------
@@ -36,14 +37,14 @@ class TestDisplay : public oe::glut::GlutDisplay
     DECLARE_SUBCLASS(TestDisplay, oe::glut::GlutDisplay)
 
 public:
-    enum { MAX_TRACKS = 60 };
-
-    enum { NCHAR_NAV1_ID = 3, NCHAR_NAV2_ID = 5 };
+    static const int MAX_TRACKS = 60;
+    static const int NCHAR_NAV1_ID = 3;
+    static const int NCHAR_NAV2_ID = 5;
 
 public:
     TestDisplay();
 
-    oe::simulation::Player* getOwnship();
+    oe::models::Player* getOwnship();
     oe::simulation::Simulation* getSimulation();
     oe::simulation::Station* getStation();
 
@@ -81,7 +82,7 @@ private:
 
     oe::base::safe_ptr<oe::simulation::Station> myStation;
 
-    oe::simulation::Player* tracks[MAX_TRACKS];    // players that we're displaying
+    oe::models::Player* tracks[MAX_TRACKS];    // players that we're displaying
     int trkIdx[MAX_TRACKS];                        // Index of track symbols
 
     // pitch and roll

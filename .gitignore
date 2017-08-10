@@ -1,12 +1,14 @@
 # vs directories
-vs2008/
-vs2010/
-vs2012/
 vs2013/
 vs2015/
-codeblocks/
-codelite/
-# lib
+vs2017/
+build/obj/
+*.tmp
+
+# vs code
+.vscode
+
+# lib directory
 lib/
 
 # vs runtime libs
@@ -56,8 +58,6 @@ mainQt1/qtMakefile
 *.exe
 # windows libraries
 *.lib
-# keep premake executable
-!premake4.exe
 
 # backup files
 *.bak
@@ -78,9 +78,6 @@ demoFlightDisplays2/demoFlightDisplays2
 demoInstruments/demoInstruments
 demoSubDisplays/demoSubDisplays
 mainCockpit/mainCockpit
-mainFltk1/mainFltk1
-mainFox1/mainFox1
-mainFox2/mainFox2
 mainGlut/mainGlut
 mainGndMapRdr/mainGndMapRdr
 mainLaero/mainLaero
@@ -93,15 +90,16 @@ mainSim2/mainSim2
 mainSim3/mainSim3
 mainTerrain/mainTerrain
 mainUbf1/mainUbf1
+testDafif/testDafif
 testEvents/testEvents
 testGraphics/testGraphics
 testInfrared/testInfrared
 testIoHandler/testIoHandler
 testLinearSys/testLinearSys
 testMatrix/testMatrix
-testNavigation/testNavigation
+testMetaObject/testMetaObject
+testNavUtils/testNavUtils
 testNetHandler/testNetHandler
-testNetIO/testNetIO
 testRadar/testRadar
 testRecordData/testRecordData
 testRecorderRead/testRecorderRead
@@ -109,6 +107,7 @@ testRecorderWrite/testRecorderWrite
 testRng/testRng
 testStateMach/testStateMach
 testTables/testTables
+testTemplates/testTemplates
 testTimer/testTimer
 tutorial01/tutorial01
 tutorial02/tutorial02

@@ -2,7 +2,7 @@
 #ifndef __TestComputer_H__
 #define __TestComputer_H__
 
-#include "openeaagles/simulation/OnboardComputer.hpp"
+#include "openeaagles/models/system/OnboardComputer.hpp"
 
 //------------------------------------------------------------------------------
 // Class: TestComputer
@@ -15,9 +15,9 @@
 //       haveTgt()   true if computer/seeker currently tracking a target
 //
 //------------------------------------------------------------------------------
-class TestComputer : public oe::simulation::OnboardComputer
+class TestComputer : public oe::models::OnboardComputer
 {
-    DECLARE_SUBCLASS(TestComputer, oe::simulation::OnboardComputer)
+    DECLARE_SUBCLASS(TestComputer, oe::models::OnboardComputer)
 
 public:
    TestComputer();
@@ -36,8 +36,8 @@ protected:
    virtual void process(const double dt) override;
 
 private:
-   bool uncaged;      // flag that indicates whether gimbal is free to track target
-   bool haveTarget;   // flag indicating if we have a target track
+   bool uncaged {};      // flag that indicates whether gimbal is free to track target
+   bool haveTarget {};   // flag indicating if we have a target track
 };
 
 #endif

@@ -5,8 +5,10 @@
 #include "Station.hpp"
 #include "PlayerItem.hpp"
 
-#include "openeaagles/simulation/Simulation.hpp"
-#include "openeaagles/simulation/Player.hpp"
+#include "openeaagles/models/player/Player.hpp"
+
+#include "openeaagles/models/WorldModel.hpp"
+
 #include "openeaagles/base/List.hpp"
 #include "openeaagles/base/PairStream.hpp"
 #include "openeaagles/base/Pair.hpp"
@@ -28,7 +30,6 @@ MapView::MapView(QWidget* parent) : QGraphicsView(parent)
    map->setNorthUp(false);
    scene()->addItem(map);
 
-   stn = nullptr;
    players.clear();
 
    // setup a timer to call background refresh
@@ -82,7 +83,7 @@ void MapView::refreshView()
             // init the map
             if (map != nullptr && !map->isInit()) {
                // grab our simulation, if we have one
-               const oe::simulation::Simulation* sim = stn->getSimulation();
+               auto sim = dynamic_cast<const oe::models::WorldModel*>(stn->getSimulation());
                if (sim != nullptr) {
                   map->initialize(sim->getRefLatitude(), sim->getRefLongitude(), 100);
                }
@@ -93,7 +94,7 @@ void MapView::refreshView()
    else {
       // update the map and players
       if (map != nullptr) map->updateBG();
-      const oe::simulation::Simulation* sim = stn->getSimulation();
+      auto sim = dynamic_cast<const oe::models::WorldModel*>(stn->getSimulation());
       if (sim != nullptr) {
          const oe::base::PairStream* stream = sim->getPlayers();
          if (stream != nullptr) {
@@ -102,7 +103,7 @@ void MapView::refreshView()
             while (item != nullptr) {
                const oe::base::Pair* pair = (const oe::base::Pair*)item->getValue();
                if (pair != nullptr) {
-                  const oe::simulation::Player* ply = dynamic_cast<const oe::simulation::Player*>(pair->object());
+                  const oe::models::Player* ply = dynamic_cast<const oe::models::Player*>(pair->object());
                   if (ply != nullptr) {
                      // hold onto this player, just to be safe
                      ply->ref();
@@ -135,7 +136,7 @@ void MapView::refreshView()
             // our players against the sim, removing any old players
             for (int i = 0; i < players.size(); i++) {
                unsigned short id = players[i]->getPlayerId();
-               const oe::simulation::Player* ply = sim->findPlayer(id);
+               const oe::models::Player* ply = dynamic_cast<const oe::models::Player*>(sim->findPlayer(id));
                if (ply == nullptr) {
                   // player is gone, remove
                   PlayerItem* p = players[i];

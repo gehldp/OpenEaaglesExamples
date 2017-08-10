@@ -1,9 +1,11 @@
 
 #include "TestStation.hpp"
 
-#include "openeaagles/simulation/Antenna.hpp"
-#include "openeaagles/simulation/AirVehicle.hpp"
+#include "openeaagles/models/system/Antenna.hpp"
+#include "openeaagles/models/player/AirVehicle.hpp"
+
 #include "openeaagles/simulation/Simulation.hpp"
+
 #include "openeaagles/base/Boolean.hpp"
 #include "openeaagles/base/Pair.hpp"
 #include "openeaagles/base/PairStream.hpp"
@@ -16,12 +18,10 @@ using namespace oe;
 
 IMPLEMENT_SUBCLASS(TestStation, "TestStation")
 
-// slot table for this class type
 BEGIN_SLOTTABLE(TestStation)
     "glutDisplay",
 END_SLOTTABLE(TestStation)
 
-//  Map slot table to handles
 BEGIN_SLOT_MAP(TestStation)
     ON_SLOT(1, setSlotGlutDisplay, glut::GlutDisplay)
 END_SLOT_MAP()
@@ -29,25 +29,11 @@ END_SLOT_MAP()
 TestStation::TestStation()
 {
    STANDARD_CONSTRUCTOR()
-
-   glutDisplay = nullptr;
-   glutDisplayInit = false;
-
-   rstSw1 = false;
-   frzSw1 = false;
-   wpnRelSw1 = false;
-   tgtStepSw1 = false;
-   incTagPlayerSw1 = false;
-   bgAntenna = 0.0;
 }
 
-void TestStation::copyData(const TestStation& org, const bool cc)
+void TestStation::copyData(const TestStation& org, const bool)
 {
    BaseClass::copyData(org);
-
-   if (cc) {
-      glutDisplay = nullptr;
-   }
 
    setSlotGlutDisplay(nullptr);
    glutDisplayInit = false;
@@ -110,19 +96,19 @@ void TestStation::stepOwnshipPlayer()
    base::PairStream* pl = getSimulation()->getPlayers();
    if (pl != nullptr) {
 
-      simulation::Player* f = nullptr;
-      simulation::Player* n = nullptr;
+      models::Player* f = nullptr;
+      models::Player* n = nullptr;
       bool found = false;
 
       // Find the next player
       base::List::Item* item = pl->getFirstItem();
       while (item != nullptr) {
-         base::Pair* pair = static_cast<base::Pair*>(item->getValue());
+         const auto pair = static_cast<base::Pair*>(item->getValue());
          if (pair != nullptr) {
-            simulation::Player* ip = static_cast<simulation::Player*>(pair->object());
-            if ( ip->isMode(simulation::Player::ACTIVE) &&
+            const auto ip = static_cast<models::Player*>(pair->object());
+            if ( ip->isMode(models::Player::ACTIVE) &&
                ip->isLocalPlayer() &&
-               ip->isClassType(typeid(simulation::AirVehicle))
+               ip->isClassType(typeid(models::AirVehicle))
                ) {
                   if (f == nullptr) { f = ip; }  // Remember the first
                   if (found) { n = ip; ; break; }
@@ -143,11 +129,6 @@ bool TestStation::setSlotGlutDisplay(glut::GlutDisplay* const d)
    glutDisplay = d;
    glutDisplay->container(this);
    return true;
-}
-
-base::Object* TestStation::getSlotByIndex(const int si)
-{
-   return BaseClass::getSlotByIndex(si);
 }
 
 std::ostream& TestStation::serialize(std::ostream& sout, const int i, const bool slotsOnly) const

@@ -5,7 +5,7 @@
 #include "factory.hpp"
 
 #include "openeaagles/terrain/ded/DedFile.hpp"
-#include "openeaagles/base/util/system.hpp"
+#include "openeaagles/base/util/system_utils.hpp"
 
 #include "openeaagles/base/Pair.hpp"
 #include "openeaagles/base/Timers.hpp"
@@ -29,7 +29,7 @@ Display* display = nullptr;
 void timerFunc(int)
 {
    const double dt = 1.0 / static_cast<double>(frameRate);
-   const unsigned int millis = static_cast<unsigned int>(dt * 1000);
+   const auto millis = static_cast<unsigned int>(dt * 1000);
    glutTimerFunc(millis, timerFunc, 1);
 
    oe::base::Timer::updateTimers(static_cast<double>(dt));
@@ -55,7 +55,7 @@ Display* builder(const std::string& filename)
    }
 
    // do we have a base::Pair, if so, point to object in Pair, not Pair itself
-   oe::base::Pair* pair = dynamic_cast<oe::base::Pair*>(obj);
+   const auto pair = dynamic_cast<oe::base::Pair*>(obj);
    if (pair != nullptr) {
       obj = pair->object();
       obj->ref();
@@ -63,7 +63,7 @@ Display* builder(const std::string& filename)
    }
 
    // try to cast to proper object, and check
-   Display* display = dynamic_cast<Display*>(obj);
+   const auto display = dynamic_cast<Display*>(obj);
    if (display == nullptr) {
       std::cerr << "Invalid configuration file!" << std::endl;
       std::exit(EXIT_FAILURE);
@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
 
    // set timer
    const double dt = 1.0 / static_cast<double>(frameRate);
-   const unsigned int millis = static_cast<unsigned int>(dt * 1000);
+   const auto millis = static_cast<unsigned int>(dt * 1000);
    glutTimerFunc(millis, timerFunc, 1);
 
    glutMainLoop();

@@ -6,9 +6,8 @@
 #include "openeaagles/simulation/Station.hpp"
 
 namespace oe {
-   namespace base { class Table1; class PairStream; }
-   namespace glut { class GlutDisplay; }
-   namespace simulation { class AirVehicle; }
+namespace base { class Table1; class PairStream; }
+namespace glut { class GlutDisplay; }
 }
 
 //------------------------------------------------------------------------------
@@ -44,7 +43,7 @@ private:
 
     // Main Display
     oe::base::safe_ptr<oe::glut::GlutDisplay> mainDisplay;
-    bool displayInit;
+    bool displayInit {};
 
 };
 

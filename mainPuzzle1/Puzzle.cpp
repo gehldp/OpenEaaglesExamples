@@ -3,6 +3,7 @@
 #include "State.hpp"
 
 #include "openeaagles/base/List.hpp"
+#include <iostream>
 
 IMPLEMENT_SUBCLASS(Puzzle, "Puzzle")
 
@@ -19,30 +20,11 @@ END_SLOT_MAP()
 Puzzle::Puzzle()
 {
    STANDARD_CONSTRUCTOR()
-
-   initState = nullptr;
-   goalState = nullptr;
-   openStates = nullptr;
-
-   for (unsigned int i = 0; i < MAX_STATES; i++) {
-      hashTable[i] = nullptr;
-   }
-   nhe = 0;
 }
 
-void Puzzle::copyData(const Puzzle& org, const bool cc)
+void Puzzle::copyData(const Puzzle& org, const bool)
 {
    BaseClass::copyData(org);
-
-   if (cc) {
-      initState = nullptr;
-      goalState = nullptr;
-      openStates = nullptr;
-      for (unsigned int i = 0; i < MAX_STATES; i++) {
-         hashTable[i] = nullptr;
-      }
-      nhe = 0;
-   }
 
    setInitState(nullptr);
    if (org.initState != nullptr) {
@@ -186,7 +168,7 @@ void Puzzle::putOpen(State* const s)
 
    if (s != nullptr) {
       // Create a new list item for this state and get the state's f() value
-      oe::base::List::Item* newItem = new oe::base::List::Item();
+      const auto newItem = new oe::base::List::Item();
       newItem->value = s;
       s->ref();
       int f = s->f();
@@ -195,7 +177,7 @@ void Puzzle::putOpen(State* const s)
       oe::base::List::Item* item = openStates->getFirstItem();
       oe::base::List::Item* refItem = nullptr;
       while (item != nullptr && refItem == nullptr) {
-         const State* p = static_cast<const State*>( item->getValue() );
+         const auto p = static_cast<const State*>( item->getValue() );
          if (f < p->f()) {
             refItem = item;
          }
@@ -295,11 +277,6 @@ void Puzzle::clearHashTable()
       }
    }
    nhe = 0;
-}
-
-oe::base::Object* Puzzle::getSlotByIndex(const int si)
-{
-    return BaseClass::getSlotByIndex(si);
 }
 
 std::ostream& Puzzle::serialize(std::ostream& sout, const int i, const bool slotsOnly) const

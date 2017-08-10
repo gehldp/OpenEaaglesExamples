@@ -3,13 +3,15 @@
 #include "SimStation.hpp"
 #include "configs/f16HotasIo.hpp"
 
-#include "openeaagles/simulation/Autopilot.hpp"
-#include "openeaagles/simulation/AirVehicle.hpp"
-#include "openeaagles/simulation/Navigation.hpp"
+#include "openeaagles/models/system/Autopilot.hpp"
+#include "openeaagles/models/player/AirVehicle.hpp"
+#include "openeaagles/models/navigation/Navigation.hpp"
+#include "openeaagles/models/navigation/Route.hpp"
+
 #include "openeaagles/simulation/Simulation.hpp"
-#include "openeaagles/simulation/Route.hpp"
+
 #include "openeaagles/base/Boolean.hpp"
-#include "openeaagles/base/IoData.hpp"
+#include "openeaagles/base/io/IoData.hpp"
 #include "openeaagles/base/util/math_utils.hpp"
 
 using namespace oe;
@@ -22,30 +24,11 @@ EMPTY_DELETEDATA(TestIoHandler)
 TestIoHandler::TestIoHandler()
 {
    STANDARD_CONSTRUCTOR()
-   initData();
 }
 
-void TestIoHandler::initData()
-{
-   rstSw1 = false;
-   frzSw1 = false;
-   wpnReloadSw1 = false;
-
-   wpnRelSw1 = false;
-   trgSw1 = false;
-   tgtStepSw1 = false;
-   tgtDesSw1 = false;
-   rtn2SrchSw1 = false;
-
-   autopilotSw1 = false;
-   incStptSw1 = false;
-   decStptSw1 = false;
-}
-
-void TestIoHandler::copyData(const TestIoHandler& org, const bool cc)
+void TestIoHandler::copyData(const TestIoHandler& org, const bool)
 {
    BaseClass::copyData(org);
-   if (cc) initData();
 
    rstSw1 = org.rstSw1;
    frzSw1 = org.frzSw1;
@@ -77,14 +60,14 @@ void TestIoHandler::inputDevices(const double dt)
    // ---
    // get the Station, Simulation and our ownship player
    // ---
-   SimStation* const sta = static_cast<SimStation*>( findContainerByType(typeid(SimStation)) );
+   const auto sta = static_cast<SimStation*>( findContainerByType(typeid(SimStation)) );
 
    simulation::Simulation* sim = nullptr;
-   simulation::AirVehicle* av = nullptr;
+   models::AirVehicle* av = nullptr;
 
    if (sta != nullptr) {
       sim = sta->getSimulation();
-      av = dynamic_cast<simulation::AirVehicle*>(sta->getOwnship());
+      av = dynamic_cast<models::AirVehicle*>(sta->getOwnship());
    }
 
    // ---
@@ -93,10 +76,10 @@ void TestIoHandler::inputDevices(const double dt)
    if (av != nullptr && sim != nullptr && inData != nullptr) {
 
       // find the (optional) autopilot
-      simulation::Autopilot* ap = nullptr;
+      models::Autopilot* ap = nullptr;
       {
-         base::Pair* p = av->getPilotByType( typeid( simulation::Autopilot) );
-         if (p != nullptr) ap = static_cast<simulation::Autopilot*>(p->object());
+         base::Pair* p = av->getPilotByType( typeid( models::Autopilot) );
+         if (p != nullptr) ap = static_cast<models::Autopilot*>(p->object());
       }
 
       // ------------------------------------------------------------
@@ -229,7 +212,7 @@ void TestIoHandler::inputDevices(const double dt)
          bool autopilotSw = false;
          inData->getDiscreteInput(PADDLE_SW, &autopilotSw);
          if (autopilotSw && !autopilotSw1) {
-            simulation::Autopilot* ap = dynamic_cast<simulation::Autopilot*>(av->getPilot());
+            const auto ap = dynamic_cast<models::Autopilot*>(av->getPilot());
             if (ap != nullptr) {
                ap->setHeadingHoldMode(false);
                ap->setAltitudeHoldMode(false);
@@ -258,10 +241,10 @@ void TestIoHandler::inputDevices(const double dt)
          inData->getDiscreteInput(DMS_UP_SW, &incStptSw);
          if(incStptSw && !incStptSw1) {
             // find our route and increment the steerpoint
-            simulation::Navigation* myNav = av->getNavigation();
+            models::Navigation* myNav = av->getNavigation();
             if (myNav != nullptr) {
                myNav->ref();
-               simulation::Route* myRoute = myNav->getPriRoute();
+               models::Route* myRoute = myNav->getPriRoute();
                if (myRoute != nullptr) {
                   myRoute->ref();
                   myRoute->incStpt();
@@ -277,10 +260,10 @@ void TestIoHandler::inputDevices(const double dt)
          inData->getDiscreteInput(DMS_DOWN_SW, &decStptSw);
          if(decStptSw && !decStptSw1) {
             // find our route and increment the steerpoint
-            simulation::Navigation* myNav = av->getNavigation();
+            models::Navigation* myNav = av->getNavigation();
             if (myNav != nullptr) {
                myNav->ref();
-               simulation::Route* myRoute = myNav->getPriRoute();
+               models::Route* myRoute = myNav->getPriRoute();
                if (myRoute != nullptr) {
                   myRoute->ref();
                   myRoute->decStpt();

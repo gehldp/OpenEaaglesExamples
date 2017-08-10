@@ -4,6 +4,7 @@
 #include "openeaagles/base/List.hpp"
 
 #include "PlaneAction.hpp"
+#include <iostream>
 
 namespace oe {
 namespace xbehaviors {
@@ -15,9 +16,9 @@ EMPTY_COPYDATA(PriorityArbiter)
 EMPTY_SERIALIZER(PriorityArbiter)
 EMPTY_DELETEDATA(PriorityArbiter)
 
-base::ubf::Action* PriorityArbiter::genComplexAction(base::List* const actionSet)
+base::ubf::AbstractAction* PriorityArbiter::genComplexAction(base::List* const actionSet)
 {
-   PlaneAction* complexAction = new PlaneAction;
+   const auto complexAction = new PlaneAction;
 
    unsigned int maxPitchVote = 0;
    unsigned int maxRollVote = 0;
@@ -29,7 +30,7 @@ base::ubf::Action* PriorityArbiter::genComplexAction(base::List* const actionSet
    // process entire action set
    const base::List::Item* item = actionSet->getFirstItem();
    while (item != nullptr) {
-      const PlaneAction* action = dynamic_cast<const PlaneAction*>(item->getValue());
+      const auto action = dynamic_cast<const PlaneAction*>(item->getValue());
       if (action!=nullptr) {
          if (action->isHeadingChanged() && action->getVote() > maxHeadingVote) {
             complexAction->setHeading(action->getHeading());
@@ -75,9 +76,9 @@ base::ubf::Action* PriorityArbiter::genComplexAction(base::List* const actionSet
    return complexAction;
 }
 
-void PriorityArbiter::trimChangeValidation(base::ubf::Action* const complexAction)
+void PriorityArbiter::trimChangeValidation(base::ubf::AbstractAction* const complexAction)
 {
-   PlaneAction* action = static_cast<PlaneAction*>(complexAction);
+   const auto action = static_cast<PlaneAction*>(complexAction);
 
    if ( action->isPitchChanged() && action->isPitchTrimChanged() ) {
       //ignore pitch trim ONLY if the change goes against the action we want to

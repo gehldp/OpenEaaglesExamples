@@ -1,151 +1,29 @@
 
 #include "Pfd.hpp"
-#include "openeaagles/base/Pair.hpp"
+
 #include "SituationalDisplay.hpp"
+
+#include "openeaagles/base/Pair.hpp"
+#include "openeaagles/base/units/angle_utils.hpp"
 
 #include <cstring>
 #include <cmath>
 
-// disable all deprecation warnings for now, until we fix
-#if(_MSC_VER>=1400)   // VC8+
-# pragma warning(disable: 4996)
-#endif
-
 using namespace oe;
 
-IMPLEMENT_EMPTY_SLOTTABLE_SUBCLASS(Pfd,"Pfd")
+IMPLEMENT_EMPTY_SLOTTABLE_SUBCLASS(Pfd, "Pfd")
 EMPTY_SERIALIZER(Pfd)
 EMPTY_DELETEDATA(Pfd)
 
 Pfd::Pfd()
 {
     STANDARD_CONSTRUCTOR()
-    // pitch and roll
-    pitch = 0.0;
-    pitchSD.empty();
-    pitchGhostSD.empty();
-    hdgPitchSD.empty();
-    roll = 0.0;
-    rollSD.empty();
-    // bank angle
-    baSD.empty();
-    bascaleSD.empty();
-    // heading and nav stuff
-    trueHdg = 0.0;
-    tHdgSD.empty();
-    hdgTapeSD.empty();
-    cmdCrs = 0.0;
-    cmdCrsROSD.empty();
-    cmdHdg = 0.0;
-    cmdHdgROSD.empty();
-    // cdi
-    cdiDots = 0.0;
-    // to from
-    toFrom = -1.0;
-    // airspeed
-    airSpd = 100.0;
-    airSpdSD.empty();
-    airSpdTpSD.empty();
-    airSpdHundSD.empty();
-    onesSD.empty();
-    tensSD.empty();
-    spdRstSD.empty();
-    // altitude
-    alt = 1000;
-    altSD.empty();
-    alt1SD.empty();
-    alt2SD.empty();
-    alt3SD.empty();
-    altTpSD.empty();
-    altTensSD.empty();
-    altSelectSD.empty();
-    altHundredsSD.empty();
-    altThouSD.empty();
-    // side slip
 
-    slip = 0.0;
-    slipSD.empty();
-    // glideslope
-    gSlope = 0.0;
-    gSlopeSD.empty();
-    // lateral deviation
-    latDev = 0.0;
-    latDevSD.empty();
-    // commanded speed
-    cmdSpd = 0.0;
-    aBugSD.empty();
-    diffSD.empty();
-    // commanded alt
-    cmdAlt = 5000.0;
-    altBugSD.empty();
-    altDiffSD.empty();
-    // master caution
-    mstrCtn = false;
-    mstrCtnSD.empty();
-    // vvi
-    vvi = 0.0;
-    vviSD.empty();
-    maxVvi = 3.0;
-    minVvi = 3.0;
-    maxVviSD.empty();
-    minVviSD.empty();
-    vviROSD.empty();
-    maxVviROSD.empty();
-    minVviROSD.empty();
-    // aoa
-    aoa = 0.0;
-    aoaSD.empty();
-    // ground speed
-    gSpd = 0.0;
-    gSpdSD.empty();
-    // flight director (command bars)
-    fDirBank = 0.0;
-    fDirBankSD.empty();
-    fDirPitch = 0.0;
-    fDirPitchSD.empty();
-    // selected barometric pressure
-    baro = 0.0;
-    baroSD.empty();
-    // radar alt
-    rAlt = 0.0;
-    rAltMin = 500;
     // tacan and waypoint course
-    nav1Brg = 0.0;
-    nav1Dme = 0.0;
     nav1Id[0] = ' ';
     nav1Id[1] = '\0';
-    nav1DmeSD.empty();
-    nav1IdSD.empty();
-    nav2Brg = 0.0;
-    nav2Dme = 0.0;
     nav2Id[0] = ' ';
     nav2Id[1] = '\0';
-    nav2DmeSD.empty();
-    nav2IdSD.empty();
-    // Hsi send data
-    trueHdgSD.empty();
-    cmdHdgSD.empty();
-    cmdCrsSD.empty();
-    cdiDotsSD.empty();
-    toFromSD.empty();
-    nav1BrgSD.empty();
-    nav2BrgSD.empty();
-    // Radar alt
-    rAltSD.empty();
-    rAltMinSD.empty();
-    // lat and lon
-    refLat = 0.0;
-    refLon = 0.0;
-    range = 0.0;
-    // FPM
-    fpmX = 0.0;
-    fpmY = 0.0;
-    fpmXSD.empty();
-    fpmYSD.empty();
-    // Gs
-    gLoad = 0.0;
-    // mach
-    mach = 0.0;
 }
 
 void Pfd::copyData(const Pfd& org, const bool)
@@ -289,7 +167,7 @@ bool Pfd::setPitchDeg(const double newP)
 bool Pfd::setPitchRad(const double newP)
 {
     // convert to degrees
-    pitch = static_cast<double>(newP * base::Angle::R2DCC);
+    pitch = static_cast<double>(newP * base::angle::R2DCC);
     return true;
 }
 
@@ -302,7 +180,7 @@ bool Pfd::setRollDeg(const double newR)
 bool Pfd::setRollRad(const double newR)
 {
     // convert to degrees
-    roll = static_cast<double>(newR * base::Angle::R2DCC);
+    roll = static_cast<double>(newR * base::angle::R2DCC);
     return true;
 }
 
@@ -410,7 +288,7 @@ bool Pfd::setFltDirBankDeg(const double newFDB)
 
 bool Pfd::setFltDirBankRad(const double newFDB)
 {
-    fDirBank = static_cast<double>(newFDB * base::Angle::R2DCC);
+    fDirBank = static_cast<double>(newFDB * base::angle::R2DCC);
     return true;
 }
 
@@ -422,7 +300,7 @@ bool Pfd::setFltDirPitchDeg(const double newFDP)
 
 bool Pfd::setFltDirPitchRad(const double newFDP)
 {
-    fDirPitch = static_cast<double>(newFDP * base::Angle::R2DCC);
+    fDirPitch = static_cast<double>(newFDP * base::angle::R2DCC);
     return true;
 }
 
@@ -564,21 +442,21 @@ void Pfd::updateData(const double dt)
     //std::cout << "air speed tens = " << asTens << std::endl;
     //std::cout << "air speed hunds = " << airSpdHunds << std::endl;
 
-    int rest = static_cast<int>(airSpd / 10.0);
+    const auto rest = static_cast<int>(airSpd / 10.0);
 
     //cmdSpd = 450;
     //airSpd += (dt * 10);
-    double diff = airSpd - cmdSpd;
+    const double diff = airSpd - cmdSpd;
     //std::cout << "AIRSPEED = " << airSpd << std::endl;
     //std::cout << "CMD SPEED = " << cmdSpd << std::endl;
     //std::cout << "DIFF = " << diff << std::endl;
 
-    double altDiff = alt - cmdAlt;
+    const double altDiff = alt - cmdAlt;
     // let's break the altitude down into ones and tens, so we can
     // send that data to the tape gauge
-    double altTens = ((alt/100) - static_cast<int>(alt/100)) * 10;
+    const double altTens = ((alt/100) - static_cast<int>(alt/100)) * 10;
     // now figure the rest of the number
-    int altRest = static_cast<int>(alt/99.9999);
+    const auto altRest = static_cast<int>(alt/99.9999);
     // also, for our dynamic dial arcs, we need the hundreds value of the altitude
     double altHundreds = 0;
     // find the thousands value too
@@ -695,7 +573,7 @@ void Pfd::updateData(const double dt)
     send("ghosthorizonbar", UPDATE_INSTRUMENTS, pitch, pitchGhostSD);
     // send our flight path marker it's data
     // positive pitch
-    fpmY = pitch - (aoa * std::cos(static_cast<float>(roll * base::Angle::D2RCC)));
+    fpmY = pitch - (aoa * std::cos(static_cast<float>(roll * base::angle::D2RCC)));
     // determine our flight path marker
     //std::cout << "ANGLE OF ATTACK = " << aoa << std::endl;
     //std::cout << "PITCH = " << pitch << std::endl;
@@ -714,14 +592,14 @@ void Pfd::updateData(const double dt)
         base::Pair* pair = findByType(typeid(SituationalDisplay));
         if (pair != nullptr) {
             pair->ref();
-                 // give the SituationalDisplay all the appropriate map page data
-               SituationalDisplay* myPage = dynamic_cast<SituationalDisplay*>(pair->object());
-                if (myPage != nullptr) {
-                    myPage->setReferenceLat(refLat);
-                    myPage->setReferenceLon(refLon);
-                    myPage->setHeading(trueHdg);
-                    myPage->setRange(range);
-                }
+            // give the SituationalDisplay all the appropriate map page data
+            const auto myPage = dynamic_cast<SituationalDisplay*>(pair->object());
+            if (myPage != nullptr) {
+                myPage->setReferenceLat(refLat);
+                myPage->setReferenceLon(refLon);
+                myPage->setHeading(trueHdg);
+                myPage->setRange(range);
+            }
             pair->unref();
         }
     }

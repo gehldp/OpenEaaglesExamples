@@ -1,31 +1,27 @@
 
 #include "DataRecordTest.hpp"
 
-#include "openeaagles/simulation/Simulation.hpp"
-#include "openeaagles/simulation/Station.hpp"
-#include "openeaagles/simulation/Player.hpp"
 #include "openeaagles/base/edl_parser.hpp"
 #include "openeaagles/base/Pair.hpp"
 
-// factories
 #include "openeaagles/simulation/factory.hpp"
+#include "openeaagles/models/factory.hpp"
 #include "openeaagles/base/factory.hpp"
 #include "openeaagles/recorder/factory.hpp"
 
 #include <string>
 #include <cstdlib>
 
-// our class factory
 oe::base::Object* factory(const std::string& name)
 {
    oe::base::Object* obj = nullptr;
 
-   //
    if ( name == DataRecordTest::getFactoryName() ) {
       obj = new DataRecordTest();
    }
    else {
       if (obj == nullptr) obj = oe::simulation::factory(name);
+      if (obj == nullptr) obj = oe::models::factory(name);
       if (obj == nullptr) obj = oe::base::factory(name);
       if (obj == nullptr) obj = oe::recorder::factory(name);
    }
@@ -33,7 +29,6 @@ oe::base::Object* factory(const std::string& name)
    return obj;
 }
 
-// DataRecordTest builder
 DataRecordTest* builder(const std::string& filename)
 {
    // read configuration file
@@ -51,7 +46,7 @@ DataRecordTest* builder(const std::string& filename)
    }
 
    // do we have a oe::base::Pair, if so, point to object in Pair, not Pair itself
-   oe::base::Pair* pair = dynamic_cast<oe::base::Pair*>(obj);
+   const auto pair = dynamic_cast<oe::base::Pair*>(obj);
    if (pair != nullptr) {
       obj = pair->object();
       obj->ref();
@@ -59,7 +54,7 @@ DataRecordTest* builder(const std::string& filename)
    }
 
    // try to cast to proper object, and check
-   DataRecordTest* dataRecordTest = dynamic_cast<DataRecordTest*>(obj);
+   const auto dataRecordTest = dynamic_cast<DataRecordTest*>(obj);
    if (dataRecordTest == nullptr) {
       std::cerr << "Invalid configuration file!" << std::endl;
       std::exit(EXIT_FAILURE);

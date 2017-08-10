@@ -1,11 +1,8 @@
-//------------------------------------------------------------------------------
-// Test of graphics system
-//------------------------------------------------------------------------------
+
 #include "openeaagles/base/Pair.hpp"
 #include "openeaagles/base/Timers.hpp"
 #include "openeaagles/base/edl_parser.hpp"
 #include "openeaagles/base/functors/Tables.hpp"
-#include "openeaagles/base/Nav.hpp"
 #include "openeaagles/base/units/Angles.hpp"
 
 #include "openeaagles/graphics/Graphic.hpp"
@@ -36,7 +33,7 @@
 const unsigned int frame_rate = 10;
 // derived delta times
 const double dt_secs = 1.0 / static_cast<double>(frame_rate);
-const unsigned int dt_msecs = static_cast<unsigned int>(dt_secs * 1000.0);
+const auto dt_msecs = static_cast<unsigned int>(dt_secs * 1000.0);
 
 TestDisplay* testDisplay = nullptr;
 
@@ -108,7 +105,7 @@ TestDisplay* builder(const std::string& filename)
    }
 
    // do we have a base::Pair, if so, point to object in Pair, not Pair itself
-   oe::base::Pair* pair = dynamic_cast<oe::base::Pair*>(obj);
+   const auto pair = dynamic_cast<oe::base::Pair*>(obj);
    if (pair != nullptr) {
       obj = pair->object();
       obj->ref();
@@ -116,7 +113,7 @@ TestDisplay* builder(const std::string& filename)
    }
 
    // try to cast to proper object, and check
-   TestDisplay* testDisplay = dynamic_cast<TestDisplay*>(obj);
+   const auto testDisplay = dynamic_cast<TestDisplay*>(obj);
    if (testDisplay == nullptr) {
       std::cerr << "Invalid configuration file!" << std::endl;
       std::exit(EXIT_FAILURE);
@@ -129,7 +126,7 @@ int main(int argc, char* argv[])
    glutInit(&argc, argv);
 
    // default configuration filename
-   std::string configFilename = "test.edl";
+   std::string configFilename = "test1.edl";
 
    // parse arguments
    for (int i = 1; i < argc; i++) {

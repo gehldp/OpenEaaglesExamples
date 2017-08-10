@@ -4,35 +4,26 @@
 #include <cstdlib>
 
 IMPLEMENT_SUBCLASS(MyComp, "MyComp")
-// setup slot table
+EMPTY_SERIALIZER(MyComp)
+
 BEGIN_SLOTTABLE(MyComp)
   "str"
 END_SLOTTABLE(MyComp)
-// map attributes to slots
+
 BEGIN_SLOT_MAP(MyComp)
   ON_SLOT(1, setSlotStr, oe::base::String)
 END_SLOT_MAP()
-EMPTY_SERIALIZER(MyComp)
 
 MyComp::MyComp()
 {
    STANDARD_CONSTRUCTOR()
-   initData();
+
    std::cout << "MyComp::MyComp() called\n";
 }
 
-void MyComp::initData()
-{
-   str = nullptr;
-}
-
-void MyComp::copyData(const MyComp& org, const bool cc)
+void MyComp::copyData(const MyComp& org, const bool)
 {
    BaseClass::copyData(org);
-
-   if (cc) {
-      initData();
-   }
 
    if (str != nullptr) { str->unref(); str = nullptr; }
    if (org.str != nullptr) str = org.str->clone();
@@ -59,11 +50,6 @@ const oe::base::String* MyComp::getStr() const
    return str;
 }
 
-oe::base::Object* MyComp::getSlotByIndex(const int si)
-{
-   return BaseClass::getSlotByIndex(si);
-}
-
 bool MyComp::setSlotStr(const oe::base::String* const x)
 {
    bool ok = false;
@@ -84,7 +70,7 @@ void MyComp::reset()
 
 void MyComp::updateTC(const double dt)
 {
-   unsigned int millis = static_cast<unsigned int>(dt * 1000);
+   const auto millis = static_cast<unsigned int>(dt * 1000);
    std::cout << "Time has moved forward by " << millis << " milliseconds\n";
 
    // Update base classes stuff

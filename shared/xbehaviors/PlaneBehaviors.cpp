@@ -17,7 +17,8 @@
 #include "PlaneState.hpp"
 
 #include "openeaagles/base/units/Distances.hpp"
-#include "openeaagles/base/ubf/State.hpp"
+#include "openeaagles/base/ubf/AbstractAction.hpp"
+#include "openeaagles/base/ubf/AbstractState.hpp"
 #include "openeaagles/base/util/constants.hpp"
 
 namespace oe {
@@ -28,14 +29,12 @@ EMPTY_COPYDATA(PlaneBehaviorBase)
 EMPTY_SERIALIZER(PlaneBehaviorBase)
 EMPTY_DELETEDATA(PlaneBehaviorBase)
 
-// slot table for this class type
 BEGIN_SLOTTABLE(PlaneBehaviorBase)
     "criticalAltitude",
     "voteOnCriticalAltitude",
     "voteOnIncomingMissile"
 END_SLOTTABLE(PlaneBehaviorBase)
 
-// map slot table to handles
 BEGIN_SLOT_MAP(PlaneBehaviorBase)
    ON_SLOT( 1, setSlotCriticalAltitude, base::Distance )
    ON_SLOT( 2, setSlotVoteOnCriticalAltitude, base::Number)
@@ -46,9 +45,6 @@ END_SLOT_MAP()
 PlaneBehaviorBase::PlaneBehaviorBase()
 {
    STANDARD_CONSTRUCTOR()
-   criticalAltitude = 3500.0f;
-   voteOnCriticalAltitude = 0;
-   voteOnIncomingMissile = 0;
 }
 
 bool PlaneBehaviorBase::setSlotCriticalAltitude(const base::Distance* const msg)
@@ -86,26 +82,15 @@ bool PlaneBehaviorBase::setSlotVoteOnIncomingMissile(const base::Number* const n
    return ok;
 }
 
-//------------------------------------------------------------------------------
-// getSlotByIndex() for Graphic
-//------------------------------------------------------------------------------
-base::Object* PlaneBehaviorBase::getSlotByIndex(const int si)
-{
-    return BaseClass::getSlotByIndex(si);
-}
-
-
 IMPLEMENT_SUBCLASS(PlaneFire, "PlaneFire")
 EMPTY_COPYDATA(PlaneFire)
 EMPTY_SERIALIZER(PlaneFire)
 EMPTY_DELETEDATA(PlaneFire)
 
-// slot table for this class type
 BEGIN_SLOTTABLE(PlaneFire)
     "maxDistance"
 END_SLOTTABLE(PlaneFire)
 
-// map slot table to handles
 BEGIN_SLOT_MAP(PlaneFire)
    ON_SLOT( 1, setSlotMaxDistance, base::Distance )
 END_SLOT_MAP()
@@ -113,13 +98,12 @@ END_SLOT_MAP()
 PlaneFire::PlaneFire()
 {
    STANDARD_CONSTRUCTOR()
-   maxDistance = 15500.0f;
-
 }
-base::ubf::Action* PlaneFire::genAction(const base::ubf::State* const state, const double dt)
+
+base::ubf::AbstractAction* PlaneFire::genAction(const base::ubf::AbstractState* const state, const double dt)
 {
    PlaneAction* action = nullptr;
-   const PlaneState* pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
+   const auto pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
    
    //if (pState!=0 && pState->isAlive() && pState->isTracking() && pState->getTargetTrack()>=0) {
    if (pState!=nullptr && pState->isAlive() && pState->isTracking() && pState->getTargetTrack()<PlaneState::MAX_TRACKS) {
@@ -144,14 +128,6 @@ bool PlaneFire::setSlotMaxDistance(const base::Distance* const msg)
     return ok;
 }
 
-//------------------------------------------------------------------------------
-// getSlotByIndex() for Graphic
-//------------------------------------------------------------------------------
-base::Object* PlaneFire::getSlotByIndex(const int si)
-{
-    return BaseClass::getSlotByIndex(si);
-}
-
 
 IMPLEMENT_SUBCLASS(PlaneFlyStraight, "PlaneFlyStraight")
 EMPTY_SLOTTABLE(PlaneFlyStraight)
@@ -162,13 +138,12 @@ EMPTY_DELETEDATA(PlaneFlyStraight)
 PlaneFlyStraight::PlaneFlyStraight()
 {
    STANDARD_CONSTRUCTOR()
-   holdingAltitude = 4500;
 }
 
-base::ubf::Action* PlaneFlyStraight::genAction(const base::ubf::State* const state, const double dt)
+base::ubf::AbstractAction* PlaneFlyStraight::genAction(const base::ubf::AbstractState* const state, const double dt)
 {
    PlaneAction* action = nullptr;
-   const PlaneState* pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
+   const auto pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
 
    if (pState!=nullptr && pState->isAlive()) {
       action = new PlaneAction();
@@ -215,10 +190,10 @@ EMPTY_COPYDATA(PlaneFollowEnemy)
 EMPTY_SERIALIZER(PlaneFollowEnemy)
 EMPTY_DELETEDATA(PlaneFollowEnemy)
 
-base::ubf::Action* PlaneFollowEnemy::genAction(const base::ubf::State* const state, const double dt)
+base::ubf::AbstractAction* PlaneFollowEnemy::genAction(const base::ubf::AbstractState* const state, const double dt)
 {
    PlaneAction* action = nullptr;
-   const PlaneState* pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
+   const auto pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
 
    if (pState!=nullptr && pState->isAlive() && pState->isTracking() && pState->getTargetTrack()<PlaneState::MAX_TRACKS) {
       action = new PlaneAction();
@@ -261,10 +236,10 @@ EMPTY_COPYDATA(PlaneTurn)
 EMPTY_SERIALIZER(PlaneTurn)
 EMPTY_DELETEDATA(PlaneTurn)
 
-base::ubf::Action* PlaneTurn::genAction(const base::ubf::State* const state, const double dt)
+base::ubf::AbstractAction* PlaneTurn::genAction(const base::ubf::AbstractState* const state, const double dt)
 {
    PlaneAction* action = nullptr;
-   const PlaneState* pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
+   const auto pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
 
    if (pState!=nullptr && pState->isAlive()) {
       action = new PlaneAction();
@@ -302,10 +277,10 @@ EMPTY_COPYDATA(PlaneSlowTurn)
 EMPTY_SERIALIZER(PlaneSlowTurn)
 EMPTY_DELETEDATA(PlaneSlowTurn)
 
-base::ubf::Action* PlaneSlowTurn::genAction(const base::ubf::State* const state, const double dt)
+base::ubf::AbstractAction* PlaneSlowTurn::genAction(const base::ubf::AbstractState* const state, const double dt)
 {
    PlaneAction* action = nullptr;
-   const PlaneState* pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
+   const auto pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
 
    if (pState!=nullptr && pState->isAlive()) {
       action = new PlaneAction();
@@ -344,10 +319,10 @@ EMPTY_COPYDATA(PlaneClimb)
 EMPTY_SERIALIZER(PlaneClimb)
 EMPTY_DELETEDATA(PlaneClimb)
 
-base::ubf::Action* PlaneClimb::genAction(const base::ubf::State* const state, const double dt)
+base::ubf::AbstractAction* PlaneClimb::genAction(const base::ubf::AbstractState* const state, const double dt)
 {
    PlaneAction* action = nullptr;
-   const PlaneState* pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
+   const auto pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
 
    if (pState!=nullptr && pState->isAlive()) {
       double pitch = -1;
@@ -374,10 +349,10 @@ EMPTY_COPYDATA(PlaneDive)
 EMPTY_SERIALIZER(PlaneDive)
 EMPTY_DELETEDATA(PlaneDive)
 
-base::ubf::Action* PlaneDive::genAction(const base::ubf::State* const state, const double dt)
+base::ubf::AbstractAction* PlaneDive::genAction(const base::ubf::AbstractState* const state, const double dt)
 {
    PlaneAction* action = nullptr;
-   const PlaneState* pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
+   const auto pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
 
    if (pState!=nullptr && pState->isAlive()) {
       double pitch;
@@ -408,14 +383,12 @@ EMPTY_DELETEDATA(PlaneTrim)
 PlaneTrim::PlaneTrim()
 {
    STANDARD_CONSTRUCTOR()
-   holdingAltitude = 4500;
-   count = 0;
 }
 
-base::ubf::Action* PlaneTrim::genAction(const base::ubf::State* const state, const double dt)
+base::ubf::AbstractAction* PlaneTrim::genAction(const base::ubf::AbstractState* const state, const double dt)
 {
    PlaneAction* action = nullptr;
-   const PlaneState* pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
+   const auto pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
 
    if (pState!=nullptr && pState->isAlive()) {
       double pitchTrim = 0;
@@ -444,10 +417,10 @@ EMPTY_COPYDATA(PlaneRoll)
 EMPTY_SERIALIZER(PlaneRoll)
 EMPTY_DELETEDATA(PlaneRoll)
 
-base::ubf::Action* PlaneRoll::genAction(const base::ubf::State* const state, const double dt)
+base::ubf::AbstractAction* PlaneRoll::genAction(const base::ubf::AbstractState* const state, const double dt)
 {
    PlaneAction* action = nullptr;
-   const PlaneState* pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
+   const auto pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
 
    if (pState!=nullptr && pState->isAlive()) {
       double roll=1;
@@ -471,10 +444,10 @@ EMPTY_COPYDATA(PlaneBarrelRoll)
 EMPTY_SERIALIZER(PlaneBarrelRoll)
 EMPTY_DELETEDATA(PlaneBarrelRoll)
 
-base::ubf::Action* PlaneBarrelRoll::genAction(const base::ubf::State* const state, const double dt)
+base::ubf::AbstractAction* PlaneBarrelRoll::genAction(const base::ubf::AbstractState* const state, const double dt)
 {
    PlaneAction* action = nullptr;
-   const PlaneState* pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
+   const auto pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
 
    if (pState!=nullptr && pState->isAlive()) {
       action = new PlaneAction();
@@ -501,13 +474,12 @@ EMPTY_DELETEDATA(PlaneLoop)
 PlaneLoop::PlaneLoop()
 {
    STANDARD_CONSTRUCTOR()
-   keepGoing = false;
 }
 
-base::ubf::Action* PlaneLoop::genAction(const base::ubf::State* const state, const double dt)
+base::ubf::AbstractAction* PlaneLoop::genAction(const base::ubf::AbstractState* const state, const double dt)
 {
    PlaneAction* action = nullptr;
-   const PlaneState* pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
+   const auto pState = dynamic_cast<const PlaneState*>(state->getUbfStateByType(typeid(PlaneState)));
 
    if (pState!=nullptr && pState->isAlive()) {
       action = new PlaneAction();

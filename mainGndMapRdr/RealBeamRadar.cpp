@@ -1,22 +1,22 @@
 
 #include "RealBeamRadar.hpp"
 
-#include "openeaagles/simulation/Antenna.hpp"
-#include "openeaagles/simulation/Player.hpp"
-#include "openeaagles/simulation/Simulation.hpp"
+#include "openeaagles/models/player/Player.hpp"
+#include "openeaagles/models/system/Antenna.hpp"
+#include "openeaagles/models/WorldModel.hpp"
+
+#include "openeaagles/terrain/Terrain.hpp"
 
 #include "openeaagles/base/Color.hpp"
 #include "openeaagles/base/Rgb.hpp"
 #include "openeaagles/base/Hsva.hpp"
 #include "openeaagles/base/Color.hpp"
-#include "openeaagles/base/Nav.hpp"
 #include "openeaagles/base/Number.hpp"
 #include "openeaagles/base/String.hpp"
 #include "openeaagles/base/Pair.hpp"
 #include "openeaagles/base/PairStream.hpp"
-#include "openeaagles/base/Terrain.hpp"
-#include "openeaagles/base/units/Angles.hpp"
-#include "openeaagles/base/units/Distances.hpp"
+
+#include "openeaagles/base/util/nav_utils.hpp"
 
 #include <cmath>
 
@@ -25,15 +25,15 @@ using namespace oe;
 const int IMG_WIDTH = 1024;
 const int IMG_HEIGHT = 1024;
 
-IMPLEMENT_SUBCLASS(RealBeamRadar,"RealBeamRadar")
+IMPLEMENT_SUBCLASS(RealBeamRadar, "RealBeamRadar")
 EMPTY_SERIALIZER(RealBeamRadar)
 
 BEGIN_SLOTTABLE(RealBeamRadar)
-   "interpolate",    //  1) Interpolate flag (default: false)
+   "interpolate",    //  1: Interpolate flag (default: false)
 END_SLOTTABLE(RealBeamRadar)
 
 BEGIN_SLOT_MAP(RealBeamRadar)
-   ON_SLOT( 1, setSlotInterpolate,   base::Number)
+   ON_SLOT( 1, setSlotInterpolate, base::Number)
 END_SLOT_MAP()
 
 RealBeamRadar::RealBeamRadar()
@@ -42,7 +42,7 @@ RealBeamRadar::RealBeamRadar()
 
    terrain = nullptr;
 
-   altitude = 15000.0 * base::Distance::FT2M;
+   altitude = 15000.0 * base::distance::FT2M;
    antAzAngle = 0.0;
    antElAngle = 0.0;
    ray0 = 0;
@@ -112,7 +112,7 @@ void RealBeamRadar::transmit(const double dt)
    beamWidth = 7.0;
 
    //
-   const simulation::Player* own = getOwnship();
+   const models::Player* own = getOwnship();
    if (own != nullptr) {
       // Get our ownship parameters
       altitude = static_cast<double>(own->getAltitude());
@@ -122,15 +122,15 @@ void RealBeamRadar::transmit(const double dt)
       // Locate the terrain elevation database
       if (terrain == nullptr) {
 
-         const simulation::Simulation* sim = own->getSimulation();
+         const models::WorldModel* sim = own->getWorldModel();
          if (sim != nullptr) {
-            setTerrain( sim->getTerrain() );
+            setTerrain( dynamic_cast<const oe::terrain::Terrain*>(sim->getTerrain()) );    // ddh
          }
       }
    }
 
    // Transmitting, scanning
-   const simulation::Antenna* ant = getAntenna();
+   const models::Antenna* ant = getAntenna();
    if (isTransmitting() && ant != nullptr && image != nullptr && terrain != nullptr && terrain->isDataLoaded()) {
 
       // Compute max range (NM)
@@ -150,7 +150,7 @@ void RealBeamRadar::transmit(const double dt)
 
       // Compute the earth's curvature effect
       double curvature[IMG_HEIGHT];
-      computeEarthCurvature(curvature, IMG_HEIGHT, maxRngNM, static_cast<double>(base::Nav::ERAD60));
+      computeEarthCurvature(curvature, IMG_HEIGHT, maxRngNM, static_cast<double>(base::nav::ERAD60));
 
       double hue = 120.0;      // see Hsv
       double saturation = 0.0; // see Hsv
@@ -180,8 +180,8 @@ void RealBeamRadar::transmit(const double dt)
       antElAngle = static_cast<double>(ant->getElevationD());
 
       // Which ray are we on?
-      double halfRay = static_cast<double>(IMG_WIDTH/2.0f);
-      int ray = static_cast<int>(((antAzAngle/45.0f) * halfRay) + halfRay);
+      const auto halfRay = static_cast<double>(IMG_WIDTH/2.0f);
+      auto ray = static_cast<int>(((antAzAngle/45.0f) * halfRay) + halfRay);
       if (ray < 0) ray = 0;
       if (ray > (IMG_WIDTH-1)) ray = (IMG_WIDTH-1);
       if (fpass) { ray0 = ray; fpass = false; }
@@ -204,7 +204,7 @@ void RealBeamRadar::transmit(const double dt)
          double direction = 45.0 * static_cast<double>(xx) / static_cast<double>(IMG_WIDTH/2);
 
          // get a strip of elevations from south to north
-         unsigned int num = terrain->getElevations(elevations, validFlgs, IMG_HEIGHT, latitude, longitude, direction, groundRange[IMG_HEIGHT-1], interpolate);
+         /*unsigned int num = */terrain->getElevations(elevations, validFlgs, IMG_HEIGHT, latitude, longitude, direction, groundRange[IMG_HEIGHT-1], interpolate);
 
          // Apply earth curvature effects to terrain elevations
          for (int irow = 0; irow < IMG_HEIGHT; irow++) {
@@ -212,10 +212,10 @@ void RealBeamRadar::transmit(const double dt)
          }
 
          // Generate Masks
-         base::Terrain::vbwShadowChecker(maskFlgs, elevations, validFlgs, IMG_HEIGHT, groundRange[IMG_HEIGHT-1], altitude, antElAngle, beamWidth);
+         terrain::Terrain::vbwShadowChecker(maskFlgs, elevations, validFlgs, IMG_HEIGHT, groundRange[IMG_HEIGHT-1], altitude, antElAngle, beamWidth);
 
          // Compute AAC data
-         base::Terrain::aac(aacData, elevations, maskFlgs, IMG_HEIGHT, groundRange[IMG_HEIGHT-1], altitude);
+         terrain::Terrain::aac(aacData, elevations, maskFlgs, IMG_HEIGHT, groundRange[IMG_HEIGHT-1], altitude);
 
          // Draw a line along the Y points (moving from south to north along the latitude lines)
          for (int irow = 0; irow < IMG_HEIGHT; irow++) {
@@ -223,9 +223,9 @@ void RealBeamRadar::transmit(const double dt)
             double sn = aacData[irow];
 
             // convert to a color (or gray) value
-            osg::Vec3 color(0,0,0);
+            base::Vec3d color(0,0,0);
             if (validFlgs[irow] && !maskFlgs[irow]) {
-               base::Terrain::getElevationColor(sn, 0.0, 1.0, grayTable, 19, color);
+               terrain::Terrain::getElevationColor(sn, 0.0, 1.0, grayTable, 19, color);
             }
 
             // store this color
@@ -253,7 +253,7 @@ bool RealBeamRadar::computeGroundRanges(double* const groundRange, const unsigne
    if (groundRange != nullptr && n > 0 && maxRngNM > 0) {
 
       // Max range (m)
-      double maxRng = maxRngNM * base::Distance::NM2M;
+      double maxRng = maxRngNM * base::distance::NM2M;
 
       // Delta range between points (m)
       double deltaRng = maxRng/static_cast<double>(n);
@@ -319,8 +319,8 @@ bool RealBeamRadar::computeEarthCurvature(double* const curvature, const unsigne
    bool ok = false;
    if (curvature != nullptr && n > 0 && maxRngNM > 0 && radiusNM > 0) {
 
-      double radius = radiusNM * base::Distance::NM2M;
-      double maxRng = maxRngNM * base::Distance::NM2M;
+      double radius = radiusNM * base::distance::NM2M;
+      double maxRng = maxRngNM * base::distance::NM2M;
       for (unsigned int idx = 0; idx < n; idx++) {
          double curRng = maxRng * static_cast<double>(idx)/static_cast<double>(n);
          double arc = curRng / radius;
@@ -339,7 +339,7 @@ bool RealBeamRadar::computeEarthCurvature(double* const curvature, const unsigne
 // set functions
 //------------------------------------------------------------------------------
 
-bool RealBeamRadar::setTerrain(const base::Terrain* const msg)
+bool RealBeamRadar::setTerrain(const terrain::Terrain* const msg)
 {
    if (msg != terrain) {
       if (terrain != nullptr) terrain->unref();
@@ -455,7 +455,3 @@ void RealBeamRadar::freeImageMemory()
    if (maskFlgs != nullptr)   { delete[] maskFlgs;   maskFlgs = nullptr; }
 }
 
-base::Object* RealBeamRadar::getSlotByIndex(const int si)
-{
-    return BaseClass::getSlotByIndex(si);
-}

@@ -5,7 +5,8 @@
 #include "openeaagles/gui/glut/GlutDisplay.hpp"
 
 namespace oe {
-   namespace simulation { class Station; class Aircraft; }
+namespace models { class Aircraft; }
+namespace simulation { class Station; }
 }
 
 //------------------------------------------------------------------------------
@@ -18,27 +19,27 @@ class AdiDisplay : public oe::glut::GlutDisplay
 public:
    AdiDisplay();
 
-   oe::simulation::Aircraft* getOwnship();
-   oe::simulation::Station* getStation();
-
    virtual void updateData(const double dt = 0.0) override;
 
 private:
+   oe::models::Aircraft* getOwnship();
+   oe::simulation::Station* getStation();
+
    oe::base::safe_ptr<oe::simulation::Station> myStation;
 
    //-----------------------------
-   double psiRO;     // [deg]
-   double thtRO;     // [deg]
-   double phiRO;     // [deg]
-   double velRO;     // [kts]
-   double altRO;     // [ft]
+   double psiRO {};     // [deg]
+   double thtRO {};     // [deg]
+   double phiRO {};     // [deg]
+   double velRO {};     // [kts]
+   double altRO {};     // [ft]
 
-   double pRO;       // [deg/sec]
-   double qRO;       // [deg/sec]
-   double rRO;       // [deg/sec]
+   double pRO {};       // [deg/sec]
+   double qRO {};       // [deg/sec]
+   double rRO {};       // [deg/sec]
 
-   double bankADI;   // [deg]
-   double pitchADI;  // [deg]
+   double bankADI {};   // [deg]
+   double pitchADI {};  // [deg]
 
    //-----------------------------
    SendData psiRO_SD;

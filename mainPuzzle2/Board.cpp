@@ -11,17 +11,11 @@ using namespace oe;
 
 IMPLEMENT_SUBCLASS(Board, "PuzzleBoard")
 
-//------------------------------------------------------------------------------
-// Slot table for this form type
-//------------------------------------------------------------------------------
 BEGIN_SLOTTABLE(Board)
     "puzzle",      //  1: Our puzzle controller
     "templates",   //  2: List of block templates (slot numbers MUST match block type IDs)
 END_SLOTTABLE(Board)
 
-//------------------------------------------------------------------------------
-//  Map slot table to handles
-//------------------------------------------------------------------------------
 BEGIN_SLOT_MAP(Board)
     ON_SLOT( 1, setSlotPuzzle,    Puzzle )
     ON_SLOT( 2, setSlotTemplates, base::PairStream )
@@ -30,46 +24,11 @@ END_SLOT_MAP()
 Board::Board()
 {
    STANDARD_CONSTRUCTOR()
-
-   // Clear our list of graphics::Graphic templates for each block type
-   templates = nullptr;
-
-   // clear the puzzle
-   puzzle = nullptr;
-
-   // Clear the solution path
-   for (unsigned int i = 0; i < MAX_STATES; i++) {
-      path[i] = nullptr;
-   }
-   finalState = nullptr;
-   nstates = 0;
-
-   // Clear our blocks
-   for (unsigned int i = 0; i < MAX_BLOCKS; i++) {
-      blocks[i] = nullptr;
-      blockId[i] = 0;
-      xp[i] = 0;
-      yp[i] = 0;
-      xd[i] = 0;
-      yd[i] = 0;
-   }
-   nblocks = 0;
-
-   curPathState = 0;
-   moveTimer = 0.0;
-   startupTimer = 0.0;
-   movingFlg = false;
 }
 
-void Board::copyData(const Board& org, const bool cc)
+void Board::copyData(const Board& org, const bool)
 {
    BaseClass::copyData(org);
-
-   if (cc) {
-      templates = nullptr;
-      puzzle = nullptr;
-      finalState = nullptr;
-   }
 
    setSlotPuzzle(nullptr);
    if (org.puzzle != nullptr) {
@@ -176,7 +135,7 @@ unsigned int Board::setupBlockGraphics()
                unsigned int typeId = b->getTypeId();
                const base::Pair* pair = templates->getPosition(typeId);
                if (pair != nullptr) {
-                  const graphics::Graphic* g = dynamic_cast<const graphics::Graphic*>( pair->object() );
+                  const auto g = dynamic_cast<const graphics::Graphic*>( pair->object() );
                   if (g != nullptr) {
                      // Ok, we've found a graphics::Graphic to draw this block!
                      blocks[nblocks] = g->clone();
@@ -313,11 +272,6 @@ bool Board::setSlotTemplates(const base::PairStream* const p)
    templates = p;
    if (templates != nullptr) templates->ref();
    return true;
-}
-
-base::Object* Board::getSlotByIndex(const int si)
-{
-    return BaseClass::getSlotByIndex(si);
 }
 
 std::ostream& Board::serialize(std::ostream& sout, const int i, const bool slotsOnly) const

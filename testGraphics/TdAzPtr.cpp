@@ -1,6 +1,7 @@
 
 #include "TdAzPtr.hpp"
 #include "openeaagles/base/Number.hpp"
+#include <iostream>
 
 using namespace oe;
 
@@ -11,7 +12,6 @@ EMPTY_DELETEDATA(TdAzPtr)
 TdAzPtr::TdAzPtr()
 {
     STANDARD_CONSTRUCTOR()
-    azimuth = 0.0;
 }
 
 void TdAzPtr::copyData(const TdAzPtr& org, const bool)
@@ -29,7 +29,7 @@ bool TdAzPtr::event(const int event, base::Object* const obj)
 
     if (event == UPDATE_VALUE)
     {
-        const base::Number* num = dynamic_cast<const base::Number*>(obj);
+        const auto num = dynamic_cast<const base::Number*>(obj);
         if (num != nullptr) {
             azimuth = num->getReal();
             used = true;

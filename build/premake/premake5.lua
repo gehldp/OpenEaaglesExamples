@@ -4,6 +4,7 @@
 -- Target of interest:
 --     vs2013     (Visual Studio 2013)
 --     vs2015     (Visual Studio 2015)
+--     vs2017     (Visual Studio 2017)
 --
 
 -- we must have an ide/compiler specified
@@ -36,17 +37,13 @@ print ("OpenEaaglesExamples Paths:")
 print ("  Include   :"..OEExamplesIncPath)
 print ("  Libraries :"..OEExamplesLibPath)
 
+
 --
 -- directory location for HLA include and library paths
 --
-HLA_ROOT = "../../../portico-2.0.1"
-HLAIncPath = HLA_ROOT.."/include/hla13"
-if (_ACTION == "vs2013") then
-  HLALibPath = HLA_ROOT.."/lib/vc12"
-end
-if (_ACTION == "vs2015") then
-  HLALibPath = HLA_ROOT.."/lib/vc14"
-end
+HLA_ROOT = "../../../openrti"
+HLAIncPath = HLA_ROOT.."/include"
+HLALibPath = HLA_ROOT.."/lib"
 print ("HLA Paths:")
 print ("  Include   : "..HLALibPath)
 --print ("  Libraries : "..OELibPath)
@@ -67,6 +64,8 @@ LibGlut_d     = LibGlut.."_d"
 LibGLU        = "glu32"
 LibGL         = "opengl32"
 
+LibWindows    = {"Ws2_32", "Winmm", "comctl32", "gdi32", "iphlpapi"}
+
 workspace "examples"
 
    -- destination directory for generated solution/project files
@@ -83,23 +82,28 @@ workspace "examples"
    --     Release        (Application linked to Multi-threaded DLL)
    --     Debug          (Application linked to Multi-threaded Debug DLL)
    --
-   configurations { "Release32", "Debug32" }
+   configurations { "Release", "Debug" }
 
-   -- common release configuration flags and symbols
-   filter { "Release32" }
+   -- visual studio options and warnings
+   -- /wd4351 (C4351 warning) - disable warning associated with array brace initialization
+   -- /wd4996 (C4996 warning) - disable deprecated declarations
+   -- /wd4005 (C4005 warning) - disable macro redefinition
+   -- /wd4100 (C4100 warning) - disable unreferenced formal parameter
+   -- /Oi - generate intrinsic functions
+   buildoptions( { "/wd4351", "/wd4996", "/wd4005", "/wd4100", "/Oi" } )
+
+   -- common release configuration flags, symbols and libraries
+   filter { "Release" }
       flags { "Optimize" }
-      -- enable compiler intrinsics and favour speed over size
-      buildoptions { "/Oi", "/Ot" }
+      -- favor speed over size
+      buildoptions { "/Ot" }
       defines { "WIN32", "NDEBUG" }
 
-   -- common debug configuration flags and symbols
-   filter { "Debug32" }
-      flags { "Symbols" }
+   -- common debug configuration flags, symbols and libraries
+   filter { "Debug" }
+      symbols "On"
       targetsuffix "_d"
-      -- enable compiler intrinsics
-      buildoptions { "/Oi" }
       defines { "WIN32", "_DEBUG" }
-
 
    -- libraries
    dofile "libs.lua"

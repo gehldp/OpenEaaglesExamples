@@ -14,9 +14,6 @@ EMPTY_DELETEDATA(MfdPage)
 MfdPage::MfdPage()
 {
    STANDARD_CONSTRUCTOR()
-   rotate = 0;
-   rotateRate = 5;
-   rSD.empty();
 }
 
 BEGIN_EVENT_HANDLER(MfdPage)
@@ -31,8 +28,8 @@ bool MfdPage::onEntry()
     if(subcomponents != nullptr) {
         base::List::Item* item = subcomponents->getFirstItem();
         while (item != nullptr) {
-            base::Pair* pair = static_cast<base::Pair*>(item->getValue());
-            base::Component* cp = static_cast<base::Component*>(pair->object());
+            const auto pair = static_cast<base::Pair*>(item->getValue());
+            const auto cp = static_cast<base::Component*>(pair->object());
             if (cp != nullptr) cp->event(RESET_EVENT);
             item = item->getNext();
         }

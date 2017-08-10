@@ -6,17 +6,11 @@
 #include "openeaagles/graphics/Material.hpp"
 #include "openeaagles/base/Rng.hpp"
 #include "openeaagles/base/Number.hpp"
-#include "openeaagles/base/util/str_utils.hpp"
 #include "openeaagles/base/util/math_utils.hpp"
-#include "openeaagles/base/util/system.hpp"
+#include "openeaagles/base/util/system_utils.hpp"
 
 #include <cstring>
-
-// disable all deprecation warnings for now, until we fix
-// they are quite annoying to see over and over again...
-#if(_MSC_VER>=1400)   // VC8+
-# pragma warning(disable: 4996)
-#endif
+#include <array>
 
 using namespace oe;
 
@@ -27,42 +21,32 @@ Display::Display()
 {
     STANDARD_CONSTRUCTOR()
 
-    myBool = false;
-    boolSD.empty();
-    myInt = 0;
-    intSD.empty();
-    myFloat = 0.0f;
-    floatSD.empty();
-    myDouble = 0.0;
-    doubleSD.empty();
     obj = new TestObject();
-    base::utStrcpy(myChar, sizeof(myChar), "ASCII");
-    charSD.empty();
     myColor = new base::Color();
     myColor->setRed(0.0);
     myColor->setBlue(0.0);
     myColor->setGreen(0.0);
 
     // setup a random number generator to start our colors
-    base::Rng* rng = new base::Rng();
-    osg::Vec4 diffColor[MAX_MATERIALS];
+    base::Rng rng;
+    std::array<base::Vec4d, MAX_MATERIALS> diffColor;
     // this will get our computer time, and take the result, giving us
     // a random seed to start our generator
     double x = base::getComputerTime();
     x -= static_cast<int>(x);
     x *= 10;
-    int seed = base::nint(static_cast<double>(x));
+    const unsigned int seed = static_cast<unsigned int>(base::nint(static_cast<double>(x)));
 
     // go through x amount of numbers before we get our next random number
     // this will allow for some pseudo-randomness.
-    for (int i = 0; i < seed; i++) rng->drawClosed();
+    for (unsigned int i = 0; i < seed; i++) rng.drawClosed();
 
-    for (int i = 0; i < MAX_MATERIALS; i++) {
+    for (unsigned int i = 0; i < MAX_MATERIALS; i++) {
         materials[i] = new graphics::Material();
         materialSD[i].empty();
-        diffColor[i].set(static_cast<double>(rng->drawClosed()),
-                         static_cast<double>(rng->drawClosed()),
-                         static_cast<double>(rng->drawClosed()), 1);
+        diffColor[i].set(static_cast<double>(rng.drawClosed()),
+                         static_cast<double>(rng.drawClosed()),
+                         static_cast<double>(rng.drawClosed()), 1);
         //std::cout << "DIFF COLOR = " << diffColor[i].x() << ", " << diffColor[i].y() << ", " << diffColor[i].z() << std::endl;
         materials[i]->setDiffuseColor(diffColor[i]);
         // set up initial different colors
@@ -70,20 +54,11 @@ Display::Display()
         rotations[i] = 0;
         rotationsSD[i].empty();
     }
-
-    rng->unref();
-    counter = 0;
 }
 
-void Display::copyData(const Display& org, const bool cc)
+void Display::copyData(const Display& org, const bool)
 {
     BaseClass::copyData(org);
-
-    if (cc) {
-        obj = nullptr;
-        myColor = nullptr;
-        for (int i = 0; i < MAX_MATERIALS; i++) materials[i] = nullptr;
-    }
 
     myBool = org.myBool;
     boolSD.empty();
@@ -114,7 +89,7 @@ void Display::copyData(const Display& org, const bool cc)
         rotationsSD[i].empty();
     }
 
-    base::utStrcpy(myChar, sizeof(myChar), org.myChar);
+    myChar = org.myChar;
 
     counter = org.counter;
 }
@@ -154,17 +129,22 @@ void Display::updateData(const double dt)
         myDouble += 0.00002f;
         if (myDouble > 2) myDouble = 0;
 
-        if (std::strcmp(myChar, "ASCII") == 0) base::utStrcpy(myChar, sizeof(myChar), "TEXT");
-        else base::utStrcpy(myChar, sizeof(myChar), "ASCII");
+        if (myChar == "ASCII") {
+           myChar = "TEXT";
+        } else {
+           myChar = "ASCII";
+        }
 
         obj->setBoolean(!obj->getBoolean());
         obj->setInteger(obj->getInteger() + 1);
         obj->setFloat(obj->getFloat() + 0.01f);
         obj->setDouble(obj->getDouble() + 0.0003);
         obj->setReal(obj->getReal() + 0.1f);
-        if (std::strcmp(obj->getChar(), "ASCII") == 0) obj->setChar("TEXT");
-        else obj->setChar("ASCII");
-
+        if (obj->getChar() == "ASCII") {
+            obj->setChar("TEXT");
+        } else {
+            obj->setChar("ASCII");
+        }
         if (myColor->red() < 0.9f) myColor->setRed(myColor->red() + dt);
         else myColor->setRed(0.0f);
         if (myColor->blue() < 0.9f) myColor->setBlue(myColor->blue() + (2 * dt));
@@ -173,7 +153,7 @@ void Display::updateData(const double dt)
         else myColor->setGreen(0.0);
 
         // our materials
-        osg::Vec4 diff;
+        base::Vec4d diff;
         double x = 0, y = 0, z = 0;
         for (int i = 0; i < MAX_MATERIALS; i++) {
             if (materials[i] != nullptr) {
@@ -212,7 +192,7 @@ void Display::updateData(const double dt)
     send("integer", UPDATE_VALUE, myInt, intSD);
     send("float", UPDATE_VALUE, myFloat, floatSD);
     send("double", UPDATE_VALUE, myDouble, doubleSD);
-    send("ascii", UPDATE_VALUE, myChar, charSD);
+    send("ascii", UPDATE_VALUE, myChar.c_str(), charSD);
     send("objtest", UPDATE_VALUE, obj, objSD);
     send("colors", SET_COLOR, myColor, colorSD);
     // convert materials to objects real quick, so we can send them down
@@ -220,7 +200,7 @@ void Display::updateData(const double dt)
     for (int i = 0; i < MAX_MATERIALS; i++) {
         tempMat[i] = static_cast<base::Object*>(materials[i]);
     }
-    send("matarray%d", SET_MATERIAL, tempMat, materialSD, MAX_MATERIALS);
+    send("matarray%d", SET_MATERIAL, tempMat, materialSD.data(), MAX_MATERIALS);
     // send rotations to our objects as well
-    send("rotators%d", UPDATE_VALUE2, rotations, rotationsSD, MAX_MATERIALS);
+    send("rotators%d", UPDATE_VALUE2, rotations.data(), rotationsSD.data(), MAX_MATERIALS);
 }

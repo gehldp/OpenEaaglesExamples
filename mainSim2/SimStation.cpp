@@ -2,30 +2,28 @@
 #include "SimStation.hpp"
 
 #include "openeaagles/simulation/Simulation.hpp"
-#include "openeaagles/simulation/AirVehicle.hpp"
+
+#include "openeaagles/models/player/AirVehicle.hpp"
+
 #include "openeaagles/gui/glut/GlutDisplay.hpp"
 #include "openeaagles/base/Identifier.hpp"
 #include "openeaagles/base/Boolean.hpp"
-#include "openeaagles/base/NetHandler.hpp"
 #include "openeaagles/base/Pair.hpp"
 #include "openeaagles/base/PairStream.hpp"
 #include "openeaagles/base/functors/Tables.hpp"
 #include "openeaagles/base/Timers.hpp"
 #include "openeaagles/base/units/Angles.hpp"
 #include "openeaagles/base/units/Times.hpp"
-#include "openeaagles/base/osg/Vec4"
 
-IMPLEMENT_SUBCLASS(SimStation,"SimStation")
+IMPLEMENT_SUBCLASS(SimStation, "SimStation")
 EMPTY_SERIALIZER(SimStation)
 EMPTY_DELETEDATA(SimStation)
 
-// slot table for this class type
 BEGIN_SLOTTABLE(SimStation)
     "display",                  //  1) Main Display
     "autoResetTimer",           //  2: Auto RESET timer value (base::Time); default: zero (no auto reset)
 END_SLOTTABLE(SimStation)
 
-//  Map slot table to handles
 BEGIN_SLOT_MAP(SimStation)
     ON_SLOT( 1, setSlotMainDisplay,    oe::glut::GlutDisplay)
     ON_SLOT( 2, setSlotAutoResetTime,  oe::base::Time)
@@ -34,20 +32,11 @@ END_SLOT_MAP()
 SimStation::SimStation()
 {
     STANDARD_CONSTRUCTOR()
-
-    mainDisplay = nullptr;
-    displayInit = false;
-
-    autoResetTimer0 = nullptr;
-    autoResetTimer = 0.0;
 }
 
-void SimStation::copyData(const SimStation& org, const bool cc)
+void SimStation::copyData(const SimStation& org, const bool)
 {
     BaseClass::copyData(org);
-    if (cc) {
-        autoResetTimer0 = nullptr;
-    }
 
     setSlotAutoResetTime(org.autoResetTimer0);
     autoResetTimer = org.autoResetTimer;
@@ -116,19 +105,19 @@ void SimStation::stepOwnshipPlayer()
     oe::base::PairStream* pl = getSimulation()->getPlayers();
     if (pl != nullptr) {
 
-       oe::simulation::Player* f = nullptr;
-       oe::simulation::Player* n = nullptr;
+       oe::models::Player* f = nullptr;
+       oe::models::Player* n = nullptr;
        bool found = false;
 
        // Find the next player
        oe::base::List::Item* item = pl->getFirstItem();
        while (item != nullptr) {
-           oe::base::Pair* pair = static_cast<oe::base::Pair*>(item->getValue());
+           const auto pair = static_cast<oe::base::Pair*>(item->getValue());
            if (pair != nullptr) {
-               oe::simulation::Player* ip = static_cast<oe::simulation::Player*>(pair->object());
-               if ( ip->isMode(oe::simulation::Player::ACTIVE) &&
+               const auto ip = static_cast<oe::models::Player*>(pair->object());
+               if ( ip->isMode(oe::models::Player::ACTIVE) &&
                     ip->isLocalPlayer() &&
-                    ip->isClassType(typeid(oe::simulation::AirVehicle))
+                    ip->isClassType(typeid(oe::models::AirVehicle))
                     ) {
                    if (f == nullptr) { f = ip; }  // Remember the first
                    if (found) { n = ip; ; break; }
@@ -169,7 +158,3 @@ bool SimStation::setSlotAutoResetTime(const oe::base::Time* const num)
     return true;
 }
 
-oe::base::Object* SimStation::getSlotByIndex(const int si)
-{
-    return BaseClass::getSlotByIndex(si);
-}

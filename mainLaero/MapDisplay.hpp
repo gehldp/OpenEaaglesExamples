@@ -5,10 +5,8 @@
 #include "openeaagles/gui/glut/GlutDisplay.hpp"
 
 namespace oe {
-   namespace simulation {
-      class Station;
-      class Aircraft;
-   }
+namespace models { class Aircraft; }
+namespace simulation { class Station; }
 }
 
 // -------------------------------------------------------------------------------
@@ -24,9 +22,6 @@ class MapDisplay : public oe::glut::GlutDisplay
 public:
    MapDisplay();
 
-   oe::simulation::Aircraft* getOwnship();
-   oe::simulation::Station* getStation();
-
    virtual void mouseMotionEvent(const int x, const int y) override;
    virtual void mouseEvent(const int button, const int state, const int x, const int y) override;
    virtual void passiveMotionEvent(const int x, const int y) override;
@@ -35,8 +30,11 @@ public:
    virtual void updateData(const double dt = 0.0) override;
 
 private:
+   oe::models::Aircraft* getOwnship();
+   oe::simulation::Station* getStation();
+
    // button hit enumerations
-   enum {
+   enum class Btn {
       DEC_RANGE = 101,           // Increase / decrease the map range (NM)
       INC_RANGE,
       DEC_CMD_AS,                // Increase / decrease the commanded airspeed (Kts - only works with no autopilot mode engaged)
@@ -60,9 +58,9 @@ private:
 
    oe::base::safe_ptr<oe::simulation::Station> myStation;
 
-   int startX;         // startX of our last mouse position
-   int startY;         // startY of our last mouse position
-   bool dragging;      // are we dragging the map?
+   int startX {};         // startX of our last mouse position
+   int startY {};         // startY of our last mouse position
+   bool dragging {};      // are we dragging the map?
 
    SendData cmdRangeSD;
    SendData cmdAirspeedSD;
@@ -80,7 +78,7 @@ private:
    SendData maxBankSD;
    SendData maxTurnSD;
 
-   bool passiveEnable;
+   bool passiveEnable {};
 };
 
 #endif

@@ -2,11 +2,7 @@
 #ifndef __TestIoHandler_H__
 #define __TestIoHandler_H__
 
-#include "openeaagles/base/IoHandler.hpp"
-
-namespace oe {
-    namespace simulation { class AirVehicle; }
-}
+#include "openeaagles/base/io/IoHandler.hpp"
 
 //------------------------------------------------------------------------------
 // Class:  TestIoHandler
